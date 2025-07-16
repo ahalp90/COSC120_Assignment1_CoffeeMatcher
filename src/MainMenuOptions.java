@@ -7,6 +7,7 @@ public enum MainMenuOptions {
             case DESCRIBE_COFFEE -> "Describe my Ideal Coffee";
             case VIEW_MATCHES_AND_ORDER -> "View my Coffee Matches and Order";
 
+            // Default??
         };
     }
 }

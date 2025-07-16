@@ -64,6 +64,9 @@ public class Menu {
         for (Coffee i : this.menu.values()) {
             allMenuExtras.addAll(i.getExtrasSet());
         }
+        for (int j; j< allMenuExtras.size(); j++) {
+            allMenuExtras[i] =
+        }
         return allMenuExtras;
     }
 

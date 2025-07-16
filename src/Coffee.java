@@ -117,7 +117,7 @@ public class Coffee {
     }
 
     //**********SETTERS**********
-    // Check after if they're needed.
+
     public void setPriceMin(float priceMin) {
         this.priceMin = priceMin;
     }
