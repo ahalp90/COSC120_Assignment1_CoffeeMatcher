@@ -40,12 +40,30 @@ public class Menu {
                     && (i.getDrinkType() == dreamCoffee.getDrinkType())
                     && (i.getProvenance() == dreamCoffee.getProvenance())
                     && (i.getMilkSet().containsAll(dreamCoffee.getMilkSet()))
-                    && (i.getExtrasSet().containsAll(dreamCoffee.getExtrasSet()))
+                    && (extrasSetOverlaps(i, dreamCoffee))
             ) {
                 matchedCoffeeSet.add(i);
             }
         }
         return matchedCoffeeSet;
+    }
+
+    /**
+     * Helper method that returns whether two coffees' extras sets share at least one overlapping element.
+     * @param menuCoffee is intended to be the coffee of the menu.
+     * @param dreamCoffee is intended to be the app user's dream coffee of preferred attribute values.
+     * @return boolean indicating whether the sets overlap. 'true' if overlap exists. If the user has not
+     * indicated any extras preference, then true is also returned
+     */
+    public static boolean extrasSetOverlaps(Coffee menuCoffee, Coffee dreamCoffee) {
+        if (menuCoffee.getExtrasSet().isEmpty() {
+            return true;
+        } else {
+            // Allocate dream coffee extras strings to a disposable set.
+            Set<String> overlapSet = new HashSet<>(dreamCoffee.getExtrasSet());
+            overlapSet.retainAll(menuCoffee.getExtrasSet());
+            return !overlapSet.isEmpty();
+        }
     }
 
     /**
@@ -63,9 +81,6 @@ public class Menu {
         Set<String> allMenuExtras = new HashSet<>();
         for (Coffee i : this.menu.values()) {
             allMenuExtras.addAll(i.getExtrasSet());
-        }
-        for (int j; j< allMenuExtras.size(); j++) {
-            allMenuExtras[i] =
         }
         return allMenuExtras;
     }

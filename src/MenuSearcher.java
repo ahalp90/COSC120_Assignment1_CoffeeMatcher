@@ -85,7 +85,7 @@ public class MenuSearcher {
 //                getUserDreamCoffee();
             }
             case VIEW_MATCHES_AND_ORDER -> {
-//                showViewMatchesAndOrder();
+//                viewMatchesAndOrder();
             }
             // This default should never be reached in normal program flow.
             default -> throw new IllegalStateException("Unexpected value: " + menuChoice);
@@ -412,10 +412,10 @@ public class MenuSearcher {
     public static void showCoffeesMenu() {
         // String - all coffee descriptions, line and asterisk-line separated.
         StringBuilder allCoffeesStringBuilder = new StringBuilder();
-        allCoffeesStringBuilder.append("*****Java Bean Coffee Menu - All Coffees*****\n");
+        allCoffeesStringBuilder.append("**********Java Bean Coffee Menu - All Coffees**********\n");
         for (Coffee coffee : menu.getMenu().values()) {
-            allCoffeesStringBuilder.append("\n").append(coffee.coffeeDetailsString());
-            allCoffeesStringBuilder.append("\n").append("**********");
+            allCoffeesStringBuilder.append("\n").append(coffee.coffeeDetailsString())
+            .append("\n").append("\t**********");
         }
 
         // All coffees menu GUI with scrollbar.
@@ -624,6 +624,56 @@ public class MenuSearcher {
         return dreamCoffee;
     }
 
+    public static Coffee viewMatchesAndOrder(Coffee dreamCoffee){
+        Set<Coffee> matches = new HashSet<>(menu.coffeeMatcher(dreamCoffee));
+        StringBuilder viewMatchesSB =  new StringBuilder();
+        viewMatchesSB.append("**********Java Bean Coffee Matcher and Ordering System**********\n\n");
+        if (matches.isEmpty()) {
+            viewMatchesSB.append("No matching coffee found.\n\n"
+                    +"But feel free to order anything you like off the drop-down menu below.");
+        } else {
+            viewMatchesSB.append("Congratulations, you've matched!")
+                    .append("\nYour coffee matches are shown below.")
+                    .append("\nYou can order one of your matches from the drop-down list at the bottom of this window."
+                            +"\n\n If you'd like to order a coffee you haven't yet matched with, "
+                            +"these can also be selected for order.");
+            for (Coffee coffee : matches) {
+                viewMatchesSB.append("\n").append(coffee.coffeeDetailsString())
+                .append("\n").append("\t**********");
+            }
+        }
+
+        //Coffee names String[] for drop-down menu selection.
+        String [] coffeeNamesAndId = new String[menu.getMenu().size()]; // Initiate with space for all menu coffees.
+        // foreach with external counter to simultaneously iterate through Array and Map. Idea from
+        // https://www.tutorialspoint.com/java-program-to-convert-collection-into-array
+        int coffeeNamesAndIdIndex = 0;
+        for (Coffee coffee : menu.getMenu().values()) {
+            // Add Ids after plain language names, as these are the unique identifiers and could
+            // potentially help people ordering if multiple coffees of the same plain language name
+            // exist.
+            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee.getMenuItemName() + " - " + coffee.getMenuItemID();
+            coffeeNamesAndIdIndex++;
+        }
+        Arrays.sort(coffeeNamesAndId); // Present coffees in alphabetical order.
+
+        // All coffees menu GUI with scrollbar.
+        JTextArea textArea = new JTextArea(viewMatchesSB.toString());
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        scrollPane.setPreferredSize(new Dimension(500,500 ) );
+        String selectedCoffeeNameAndId =
+                (String) JOptionPane.showInputDialog(null, scrollPane, APP_NAME,
+                        JOptionPane.INFORMATION_MESSAGE, icon, coffeeNamesAndId, null);
+
+        // Reverse the assignment of the coffee's ID to the selector string to retrieve it from the Menu's Map.
+        String[] selectedCoffeeStringArray = selectedCoffeeNameAndId.split(" ");
+        String selectedCoffeeID = selectedCoffeeStringArray[selectedCoffeeStringArray.length -1];
+
+        Coffee selectedCoffee = menu.getMenu().get(selectedCoffeeID);
+        return selectedCoffee;
+    }
 
 
     public static Geek getUserInfo(){}
@@ -654,4 +704,5 @@ public class MenuSearcher {
 
         return sb.toString().trim();
     }
+
 }
