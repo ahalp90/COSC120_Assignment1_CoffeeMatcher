@@ -2,10 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -640,8 +637,9 @@ public class MenuSearcher {
             }
         }
 
-        //Coffee names String[] for drop-down menu selection.
-        String [] coffeeNamesAndId = new String[menu.getMenu().size()]; // Initiate with space for all menu coffees.
+        //**********CREATE COFFEES SELECTION ARRAY FOR DROP-DOWN MENU**********
+        //Coffee names String[] for drop-down menu selection. Initiate with space for all menu coffees.
+        String [] coffeeNamesAndId = new String[menu.getMenu().size()];
         // foreach with external counter to simultaneously iterate through Array and Map. Idea from
         // https://www.tutorialspoint.com/java-program-to-convert-collection-into-array
         int coffeeNamesAndIdIndex = 0;
@@ -673,7 +671,7 @@ public class MenuSearcher {
         // Explicitly define parameters because milkSet comes from dreamCoffee and extrasSet is a
         // derived value of the exclusive intersection of dreamCoffee's and the Menu Coffee
         // selectedCoffee's extrasSets.
-        Coffee selectedCoffeeWithCustomisations = new Coffee(
+        return new Coffee(
                 selectedCoffee.getMenuItemId(),
                 selectedCoffee.getMenuItemName(),
                 selectedCoffee.getPrice(),
@@ -685,11 +683,10 @@ public class MenuSearcher {
                 dreamCoffee.overlapExtrasSet(selectedCoffee),
                 selectedCoffee.getDescription()
         );
-        return selectedCoffeeWithCustomisations;
     }
 
     /**
-     * Obtain the user's info.
+     * Obtain the user's info via GUI.
      *
      * Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln82-160. Regex patterns found therein.
      * However,regex Pattern compilations moved to this calling method to avoid recompilation in helpers at each loop.
@@ -753,6 +750,14 @@ public class MenuSearcher {
         return customerOrdering;
     }
 
+    /**
+     * Populate an Order record with all attribute values relevant to customer order
+     * @param customerOrdering Geek record containing the customer's personal details.
+     * @param selectedCoffeeWithCustomisations Coffee instance containing the attributes
+     *                                         of the customer's desired coffee.
+     * @return customerOrder, an Order record instance with the relevant attribute values for
+     * writing the order to file.
+     */
     public static Order createCustomerOrderRecord (Geek customerOrdering, Coffee selectedCoffeeWithCustomisations){
         Order customerOrder = new Order(
                 customerOrdering.name(),
@@ -769,38 +774,76 @@ public class MenuSearcher {
         );
         return customerOrder;
     }
-    public static writeCustomerOrderToTxt (Order customerOrder){
-        List<String> linesToWrite = new ArrayList<>();
-        // FileWriter code from W3Schools: https://www.w3schools.com/java/java_files_create.asp
-        // Create file in directory.
-        // Append a request number to avoid overwriting files; increment this with each loop.
-        int requestNo = 1;
-        // Update path based on while loop.
-        Path path;
-        String pathString = "./Order_" + customerOrder.phoneNo() + "_" + requestNo + ".txt";
-        do {
-            // File existence check syntax inspired from:
-            // https://stackoverflow.com/questions/1816673/how-do-i-check-if-a-file-exists-in-java
-            try {
-                path = Paths.get(pathString);
-            } catch (InvalidPathException e) {
-                System.err.println("Sorry, the system could not access the file path\n"
-                        + filePath + "\nError details:\n" + e.getMessage());
-            }
-            requestNo++;
-        } while(Files.exists(path);
 
+    /**
+     * Create customer order text file saved to system.
+     * Check directory access, allocate an unused filename and write the file to the directory.
+     * Calls a helper method to build the order String.
+     *
+     * Uses ideas adapted from several sources:
+     * File existence check code from: https://www.baeldung.com/java-file-directory-exists .
+     * isWritable() method idea from:
+     * https://www.geeksforgeeks.org/java/files-iswritable-method-in-java-with-examples/
+     * Files.writeString() method idea from Roberto's answer of Feb 24 2014:
+     * https://stackoverflow.com/questions/7366266/best-way-to-write-string-to-file-using-java-nio
+     * @param customerOrder the record holding all attribute values relevant to the order.
+     */
+    public static writeCustomerOrderToTxt (Order customerOrder){
+        // Check write permissions for directory. "./" must exist because it's the program's root
+        // directory, but if the write out path was moved then there should also be a dir.exists()
+        // check.
+        Path writeOutDir = Paths.get("./");
+        if (!Files.isWritable(writeOutDir)){
+            System.err.println("Error: File " + writeOutDir + " is not writable.");
+            JOptionPane.showMessageDialog(null,
+                    "Error: Your order could not be written to the system.The program will exit when you exit this dialogue box.",
+                    APP_NAME, JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
+
+        int requestNo = 0; // Start counting at 0 because do-while always runs at least once.
+
+        // Short circuit the request to avoid unreasonable wait time. This problem would need to be
+        // resolved if any user has ordered 10000 coffees off the same phone number (yay!).
+        final int maxRequestsNo = 10000;
+        String pathString;
+        Path fullOutputPath;
+        // Loop to find a valid filepath that doesn't overwrite an existing order file.
+        do {
+            requestNo++;
+            pathString = "./Order_" + customerOrder.phoneNo() + "_" + requestNo + ".txt";
+            fullOutputPath = Paths.get(pathString);
+        } while (Files.exists(fullOutputPath) || requestNo > maxRequestsNo);
+
+        if (requestNo == maxRequestsNo) {
+            JOptionPane.showMessageDialog(null,
+                    "Error: It looks like you've ordered you've ordered "+maxRequestsNo
+                            +" coffees with this phone number.\n"
+                            +"You're amazing, but our ordering system is not built to handle this level of devotion."
+                            +"\n\nPlease go speak with management to claim a prize if this is the case."
+                            +"\nYou can still order off a different phone number while we wait for our "
+                            +"dev team to fix this for you.",
+                    APP_NAME, JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
+
+        // WRITE OUT ORDER TO THE FILEPATH DETERMINED ABOVE
         try {
-            FileWriter myWriter = new FileWriter(path.toFile());
-            /* TODO UNFINISHED************************* */
-            myWriter.write(linesToWrite);
-            myWriter.close();
+            Files.writeString(
+                    fullOutputPath,
+                    orderStringToWriteOut(customerOrder) // Helper method builds String.
+            );
         } catch (IOException e) {
-            System.out.println("An error occurred while writing your file contents. Error: "+e);
+            System.err.println("Error writing output file: " + fullOutputPath + "\n" + e.getMessage());
+            JOptionPane.showMessageDialog(null,
+                    "Error: Your order could not be saved to our system. We're really sorry!"
+                            +"\nYou're welcome to try again, or else go order at the front counter.",
+                    APP_NAME, JOptionPane.ERROR_MESSAGE);
+            loadMainMenu();
         }
     }
     /**
-     * Capitalise the first letter of each word in a string, and send other letters to lowercase.
+     * Capitalise the first letter of each word in a string, and make other letters lowercase.
      *
      * Adapted with minor modification from this tutorial:
      * https://www.geeksforgeeks.org/java/java-program-to-capitalize-the-first-letter-of-each-word-in-a-string/
@@ -832,7 +875,6 @@ public class MenuSearcher {
      * Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln126-160.
      * Patterns compilations moved to calling method to avoid recompilation at each loop.
      *
-     * @param pattern the regex Pattern for validating the input String
      * @param userInput the candidate String entered by the user
      * @return true if String matches regex/false if not
      */
@@ -841,4 +883,22 @@ public class MenuSearcher {
         return matcher.matches();
     }
 
+    /**
+     * Helper method to create a String formatted to meet the order details txt requirements.
+     * @param customerOrder record containing all attribute values necessary to record an order.
+     * @return a String of the customer's order.
+     */
+    public static String orderStringToWriteOut(Order customerOrder) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Order details:\n");
+        sb.append("\tName: ").append(customerOrder.name())
+                .append(" (").append(customerOrder.phoneNo()).append(")\n");
+        sb.append("\tEmail: ").append(customerOrder.email());
+        sb.append("\tItem: ").append(customerOrder.menuItemName()).append(" (")
+                .append(") - ").append(customerOrder.drinkType()).append("\n");
+        sb.append("\tMilk: ").append(customerOrder.milk()).append("\n");
+        sb.append("\tExtras: ").append(customerOrder.extrasSet());
+
+        return  sb.toString();
+    }
 }
