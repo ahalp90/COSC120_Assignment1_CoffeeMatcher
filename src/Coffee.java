@@ -1,8 +1,9 @@
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Coffee {
-    private final String menuItemID;
+    private final String menuItemId;
     private final String menuItemName;
     private final float price;
     private final int numOfShots;
@@ -20,7 +21,7 @@ public class Coffee {
     private float priceMin;
     private float priceMax;
 
-    Coffee(String menuItemID,
+    Coffee(String menuItemId,
            String menuItemName,
            float price,
            int numOfShots,
@@ -30,7 +31,7 @@ public class Coffee {
            Set<Milk> milkSet,
            Set<String> extrasSet,
            String description) {
-        this.menuItemID = menuItemID;
+        this.menuItemId = menuItemId;
         this.menuItemName = menuItemName;
         this.price = price;
         this.numOfShots = numOfShots;
@@ -44,7 +45,7 @@ public class Coffee {
 
     public String coffeeDetailsString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(menuItemName).append(" (").append(menuItemID).append(")").append("\n");
+        sb.append(menuItemName).append(" (").append(menuItemId).append(")").append("\n");
         sb.append(description).append("\n");
         sb.append("Ingredients:\n\n");
         //case change drink type to match example?
@@ -66,10 +67,22 @@ public class Coffee {
         return sb.toString();
     }
 
+    /**
+     * Helper method that returns the overlapping extras of two coffees.
+     * @param comparisonCoffee the Coffee to be compared against the calling Coffee instance.
+     * @return a Set of the two coffees' common extras.
+     */
+    public Set<String> overlapExtrasSet(Coffee comparisonCoffee) {
+        // Allocate dream coffee extras strings to a disposable set.
+        Set<String> overlapExtrasSet = new HashSet<>(comparisonCoffee.getExtrasSet());
+        overlapExtrasSet.retainAll(this.getExtrasSet());
+        return overlapExtrasSet;
+    }
+
     //**********GETTERS**********
     // Filter out unneeded ones after.
-    public String getMenuItemID() {
-        return menuItemID;
+    public String getMenuItemId() {
+        return menuItemId;
     }
 
     public String getMenuItemName() {

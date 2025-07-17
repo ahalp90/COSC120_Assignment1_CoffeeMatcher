@@ -1,3 +1,5 @@
+//TODO DELETE ME AND MOVE TO RELEVANT METHOD*************************************************
+
 public enum MainMenuOptions {
     VIEW_FULL_MENU, DESCRIBE_COFFEE, VIEW_MATCHES_AND_ORDER;
 

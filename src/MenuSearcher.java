@@ -1,9 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -35,7 +37,7 @@ public class MenuSearcher {
             JOptionPane.showMessageDialog(null,
                     "The menu could not be loaded. The program will exit when you exit this dialogue box.",
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
-            System.exit(0);
+            System.exit(1);
         }
         // Load image to icon for use in GUIs.
         icon = new ImageIcon(ICON_PATH);
@@ -47,13 +49,13 @@ public class MenuSearcher {
         if (icon.getImageLoadStatus() == MediaTracker.ERRORED
                 || icon.getImageLoadStatus() == MediaTracker.ABORTED) {
             System.err.println("Error: The icon image failed to load. Check that the image is in the path "
-            + ICON_PATH + " and that you permission to access this path.");
+            + ICON_PATH + " and that you have permission to access this path.");
         }
 
         loadMainMenu();
     }
 
-    //*********REMEMBER TO SORT COFFEES DISPLAY ON MENU AND ORDERING MENU FROM LEAST EXPENSIVE to MOST EXPENSIVE->
+    //TODO*********REMEMBER TO SORT COFFEES DISPLAY ON MENU AND ORDERING MENU FROM LEAST EXPENSIVE to MOST EXPENSIVE->
     public static void loadMainMenu() {
         // TODO null check exit app with message.
         String menuDialogString =
@@ -113,13 +115,7 @@ public class MenuSearcher {
         // Create Menu (with Map field) to hold coffees.
         Menu menu = new Menu();
 
-        // Error caught messages print to terminal. For user friendliness it may be better to print
-        // to a dialog box? But that would require a rethink of program logic, because then the app
-        // would need to return to a default screen rather than just System.exit(1).
-
-
-
-        // String list for storing each coffee type when read from the menu txt.
+        // String List for storing each coffee (unknown qty) when read from the menu txt.
         List<String> fileContents = new ArrayList<>();
 
         // Load file contents.
@@ -399,6 +395,9 @@ public class MenuSearcher {
     /**
      * Show a menu of all available coffees.
      *
+     * Build String of the coffees' details. Calls on helper Coffee.coffeeDetailsString()
+     * and then formats as relevant. Display these in coffee menu GUI
+     *
      * JTextArea and JScrollPane code adapted from GETah's response of Dec 4, 2011 at:
      * https://stackoverflow.com/questions/8375022/joptionpane-and-scroll-function
      * This code creates a JTextArea, assigns its text to the value of the string built using
@@ -406,8 +405,6 @@ public class MenuSearcher {
      * Then it sets attributes of the text area and JScrollPane.
      * Finally, it presents JOptionPane nested with the contents of the JScrollPane
      * (which itself nests the JTextArea's contents).
-     *
-     * @param menu is the Menu object which holds a collection (Map) of all Coffee objects.
      */
     public static void showCoffeesMenu() {
         // String - all coffee descriptions, line and asterisk-line separated.
@@ -428,7 +425,7 @@ public class MenuSearcher {
                 JOptionPane.INFORMATION_MESSAGE, icon, null, null);
     }
     /**
-     * a method that requests user input/selection of coffee features e.g.  type [hot coffee/frappe], milk
+     * Requests user input/selection of coffee features e.g.  type [hot coffee/frappe], milk
      * type (including a no-milk option), number of shots, sugar [yes/no], price range, and extras),
      *
      * Assignment and exception handling code adapted from COSC120 Tute 4 solutions 3_4,
@@ -652,7 +649,7 @@ public class MenuSearcher {
             // Add Ids after plain language names, as these are the unique identifiers and could
             // potentially help people ordering if multiple coffees of the same plain language name
             // exist.
-            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee.getMenuItemName() + " - " + coffee.getMenuItemID();
+            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee.getMenuItemName() + " - " + coffee.getMenuItemId();
             coffeeNamesAndIdIndex++;
         }
         Arrays.sort(coffeeNamesAndId); // Present coffees in alphabetical order.
@@ -672,19 +669,143 @@ public class MenuSearcher {
         String selectedCoffeeID = selectedCoffeeStringArray[selectedCoffeeStringArray.length -1];
 
         Coffee selectedCoffee = menu.getMenu().get(selectedCoffeeID);
-        return selectedCoffee;
+
+        // Explicitly define parameters because milkSet comes from dreamCoffee and extrasSet is a
+        // derived value of the exclusive intersection of dreamCoffee's and the Menu Coffee
+        // selectedCoffee's extrasSets.
+        Coffee selectedCoffeeWithCustomisations = new Coffee(
+                selectedCoffee.getMenuItemId(),
+                selectedCoffee.getMenuItemName(),
+                selectedCoffee.getPrice(),
+                selectedCoffee.getNumOfShots(),
+                selectedCoffee.getSugar(),
+                selectedCoffee.getDrinkType(),
+                selectedCoffee.getProvenance(),
+                dreamCoffee.getMilkSet(),
+                dreamCoffee.overlapExtrasSet(selectedCoffee),
+                selectedCoffee.getDescription()
+        );
+        return selectedCoffeeWithCustomisations;
     }
 
+    /**
+     * Obtain the user's info.
+     *
+     * Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln82-160. Regex patterns found therein.
+     * However,regex Pattern compilations moved to this calling method to avoid recompilation in helpers at each loop.
+     *
+     * @return customerOrdering, a Geek record with the user's name, email and phone number.
+     */
+    public static Geek getUserInfo(){
+        //**********GET USER NAME**********
+        // A regex pattern to check that the input is two words, separated by a space. Word1 Letter1
+        // uppercase and following letters lowercase. Word2 must begin with an uppercase, though
+        // subsequent letters may be of either case.
+        Pattern fullNamePattern = Pattern.compile("^[A-Z][a-zA-Z]+\\s[A-Z][a-zA-Z]+$");
 
-    public static Geek getUserInfo(){}
+        String fullName;
+        do {
+            fullName = (String) JOptionPane.showInputDialog(null,
+                    "Please enter your first and last names."
+                            +"\nThe first letter of each name must be capitalised."
+                            +"\nInput letters only, separating your names by a space."
+                            +"\nEg. MaryJane Parker",
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+            if (fullName == null) {
+                loadMainMenu();
+                break; //End loop because exiting to different GUI method.
+            }
+        } while(!matchValidInputString(fullNamePattern, fullName));
 
+        //**********GET USER EMAIL**********
+        // A regex pattern to check that the email complies with RFC 5322.
+        Pattern emailPattern = Pattern.compile("^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$");
+
+        String email;
+        do {
+            email = (String) JOptionPane.showInputDialog(null,
+                    "Please enter your email address (eg. leetgeek@javajunky.com)",
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+            if (email == null) {
+                loadMainMenu();
+                break; //End loop because exiting to different GUI method.
+            }
+        } while(!matchValidInputString(emailPattern, email));
+
+        //**********GET USER PHONE NUMBER**********
+        // A regex pattern to check that phone numbers start with a 0 and are followed by 9 digits.
+        // Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln94-98
+
+        Pattern phonePattern = Pattern.compile("^0\\d{9}$");
+        String phoneNoInput;
+        do {
+            phoneNoInput = (String) JOptionPane.showInputDialog(null,
+                    "Please enter your phone number in 10-digit format (eg. 04001337000)",
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+            if (phoneNoInput == null) {
+                loadMainMenu();
+                break; //End loop because exiting to different GUI method.
+            }
+        } while(!matchValidInputString(phonePattern, phoneNoInput));
+        long phoneNo = Long.parseLong(phoneNoInput);
+
+        Geek customerOrdering = new Geek(fullName, email, phoneNo);
+        return customerOrdering;
+    }
+
+    public static Order createCustomerOrderRecord (Geek customerOrdering, Coffee selectedCoffeeWithCustomisations){
+        Order customerOrder = new Order(
+                customerOrdering.name(),
+                customerOrdering.phoneNo(),
+                customerOrdering.email(),
+                selectedCoffeeWithCustomisations.getMenuItemName(),
+                selectedCoffeeWithCustomisations.getMenuItemId(),
+                selectedCoffeeWithCustomisations.getDrinkType(),
+                // Assumes that normal flow always returns exactly one milk in milkSet; requirement
+                // to store dreamCoffee as a standard coffee (not a class extension), and the reuse
+                // of the class' Set<Milk> parameter means this could change on refactoring.
+                selectedCoffeeWithCustomisations.getMilkSet().iterator().next(),
+                selectedCoffeeWithCustomisations.getExtrasSet()
+        );
+        return customerOrder;
+    }
+    public static writeCustomerOrderToTxt (Order customerOrder){
+        List<String> linesToWrite = new ArrayList<>();
+        // FileWriter code from W3Schools: https://www.w3schools.com/java/java_files_create.asp
+        // Create file in directory.
+        // Append a request number to avoid overwriting files; increment this with each loop.
+        int requestNo = 1;
+        // Update path based on while loop.
+        Path path;
+        String pathString = "./Order_" + customerOrder.phoneNo() + "_" + requestNo + ".txt";
+        do {
+            // File existence check syntax inspired from:
+            // https://stackoverflow.com/questions/1816673/how-do-i-check-if-a-file-exists-in-java
+            try {
+                path = Paths.get(pathString);
+            } catch (InvalidPathException e) {
+                System.err.println("Sorry, the system could not access the file path\n"
+                        + filePath + "\nError details:\n" + e.getMessage());
+            }
+            requestNo++;
+        } while(Files.exists(path);
+
+        try {
+            FileWriter myWriter = new FileWriter(path.toFile());
+            /* TODO UNFINISHED************************* */
+            myWriter.write(linesToWrite);
+            myWriter.close();
+        } catch (IOException e) {
+            System.out.println("An error occurred while writing your file contents. Error: "+e);
+        }
+    }
     /**
      * Capitalise the first letter of each word in a string, and send other letters to lowercase.
      *
      * Adapted with minor modification from this tutorial:
      * https://www.geeksforgeeks.org/java/java-program-to-capitalize-the-first-letter-of-each-word-in-a-string/
-     * @param input the string to be modified
-     * @return the string in the desired (capitalised[0]lowercase[1:]) format.
+     * @param input the String to be modified.
+     * @return the String in the desired (capitalised[0]lowercase[1:]) format.
      */
     public static String capitaliseFirstLettersOnly(String input) {
         // Don't operate on null or empty strings.
@@ -703,6 +824,21 @@ public class MenuSearcher {
         }
 
         return sb.toString().trim();
+    }
+
+    /**
+     * A regex matcher that ensures that the user's entry matches the provided regex pattern.
+     *
+     * Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln126-160.
+     * Patterns compilations moved to calling method to avoid recompilation at each loop.
+     *
+     * @param pattern the regex Pattern for validating the input String
+     * @param userInput the candidate String entered by the user
+     * @return true if String matches regex/false if not
+     */
+    public static boolean matchValidInputString(Pattern regexPattern, String userInput) {
+        Matcher matcher = regexPattern.matcher(userInput);
+        return matcher.matches();
     }
 
 }
