@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -8,6 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+// TODO: Make all mutable types protected. Final/private, and ensure all returned mutables return a copy rather than the original object******
 public class MenuSearcher {
     // appName, menuFilePath and iconPath are constants.
     // Constants have uppercase snake case names:
@@ -618,49 +618,32 @@ public class MenuSearcher {
         return dreamCoffee;
     }
 
+//TODO FINISH THIS JAVADOC
+//TODO FIX ASSIGNMENT OF EXTRAS AND MILK FOR NON-DREAM COFFEE
+//TODO IMPROVE SELECTION OF DREAM COFFEES ? PUT THEM FIRST IN ARRAY LIST AND DEFAULT TO FIRST MATCH COFFEE CHOICE?
+    /**
+     * GUI for viewing coffee matches and selecting a coffee to order.
+     * @param dreamCoffee Coffee passed on to helper method buildCoffeeMatchString() for
+     *                    deriving String of user-matched coffees' details.
+     * @return the Coffee ordered by the customer. Returns either a coffee with
+     * (1) the milk preference of the customer and
+     * (2) the intersection of the menu coffee's extras and the customer's indicated extras preferences
+     * (no preference = accept all menu extras), or
+     * (3) in the case of no match, the selected coffee with no extras and the coffee's first
+     * listed milk option (or no milk if it's milk-free).
+     */
     public static Coffee viewMatchesAndOrder(Coffee dreamCoffee){
-        Set<Coffee> matches = new HashSet<>(menu.coffeeMatcher(dreamCoffee));
-        StringBuilder viewMatchesSB =  new StringBuilder();
-        viewMatchesSB.append("**********Java Bean Coffee Matcher and Ordering System**********\n\n");
-        if (matches.isEmpty()) {
-            viewMatchesSB.append("No matching coffee found.\n\n"
-                    +"But feel free to order anything you like off the drop-down menu below.");
-        } else {
-            viewMatchesSB.append("Congratulations, you've matched!")
-                    .append("\nYour coffee matches are shown below.")
-                    .append("\nYou can order one of your matches from the drop-down list at the bottom of this window."
-                            +"\n\n If you'd like to order a coffee you haven't yet matched with, "
-                            +"these can also be selected for order.");
-            for (Coffee coffee : matches) {
-                viewMatchesSB.append("\n").append(coffee.coffeeDetailsString())
-                .append("\n").append("\t**********");
-            }
-        }
-
-        //**********CREATE COFFEES SELECTION ARRAY FOR DROP-DOWN MENU**********
-        //Coffee names String[] for drop-down menu selection. Initiate with space for all menu coffees.
-        String [] coffeeNamesAndId = new String[menu.getMenu().size()];
-        // foreach with external counter to simultaneously iterate through Array and Map. Idea from
-        // https://www.tutorialspoint.com/java-program-to-convert-collection-into-array
-        int coffeeNamesAndIdIndex = 0;
-        for (Coffee coffee : menu.getMenu().values()) {
-            // Add Ids after plain language names, as these are the unique identifiers and could
-            // potentially help people ordering if multiple coffees of the same plain language name
-            // exist.
-            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee.getMenuItemName() + " - " + coffee.getMenuItemId();
-            coffeeNamesAndIdIndex++;
-        }
-        Arrays.sort(coffeeNamesAndId); // Present coffees in alphabetical order.
-
         // All coffees menu GUI with scrollbar.
-        JTextArea textArea = new JTextArea(viewMatchesSB.toString());
+        JTextArea textArea = new JTextArea(buildCoffeeMatchString(dreamCoffee)); //Call helper method to fill text.
         JScrollPane scrollPane = new JScrollPane(textArea);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         scrollPane.setPreferredSize(new Dimension(500,500 ) );
         String selectedCoffeeNameAndId =
                 (String) JOptionPane.showInputDialog(null, scrollPane, APP_NAME,
-                        JOptionPane.INFORMATION_MESSAGE, icon, coffeeNamesAndId, null);
+                        JOptionPane.INFORMATION_MESSAGE, icon,
+                        // Direct call to helper method to build String[]
+                        allCoffeesArray(), null);
 
         // Reverse the assignment of the coffee's ID to the selector string to retrieve it from the Menu's Map.
         String[] selectedCoffeeStringArray = selectedCoffeeNameAndId.split(" ");
@@ -900,5 +883,59 @@ public class MenuSearcher {
         sb.append("\tExtras: ").append(customerOrder.extrasSet());
 
         return  sb.toString();
+    }
+
+    /**
+     * Helper method. Builds a String of coffee matches based on the menu and the user's dream coffee.
+     * Called by viewMatchesAndOrder.
+     * Informs the user of all matches OR the situation of no match.
+     *
+     * @param dreamCoffee a Coffee containing the user's ideal coffee attribute values (or range thereof).
+     * @return a String informing the user how to order, whether they've matched with any coffees,
+     * and if so, their details.
+     */
+    public static String buildCoffeeMatchString(Coffee dreamCoffee) {
+        Set<Coffee> matches = new HashSet<>(menu.coffeeMatcher(dreamCoffee));
+        StringBuilder viewMatchesSB = new StringBuilder();
+        viewMatchesSB.append("**********Java Bean Coffee Matcher and Ordering System**********\n\n");
+        if (matches.isEmpty()) {
+            viewMatchesSB.append("No matching coffee found.\n\n"
+                    + "But feel free to order anything you like off the drop-down menu below.");
+        } else {
+            viewMatchesSB.append("Congratulations, you've matched!")
+                    .append("\nYour coffee matches are shown below.")
+                    .append("\nYou can order one of your matches from the drop-down list at the bottom of this window."
+                            + "\n\n If you'd like to order a coffee you haven't yet matched with, "
+                            + "these can also be selected for order.");
+            for (Coffee coffee : matches) {
+                viewMatchesSB.append("\n").append(coffee.coffeeDetailsString())
+                        .append("\n").append("\t**********");
+            }
+        }
+        return viewMatchesSB.toString();
+    }
+
+    /**
+     * Create a String Array of all coffees. Helper method to tidy up viewMatchesAndOrder.
+     * Used to populate drop-down GUI selection list.
+     *
+     * Uses a foreach with external counter to simultaneously iterate through Array and Map.
+     * Idea from https://www.tutorialspoint.com/java-program-to-convert-collection-into-array
+     *
+     * Adds Ids after plain language names, as these are the unique identifiers and could
+     * potentially help people ordering if multiple coffees of the same plain language name exist.
+     *
+     * @return coffeeNamesAndID, a String[] with all coffees listed in the format "[name] - [menuItemId]"
+     */
+    public static String [] allCoffeesArray() {
+        String[] coffeeNamesAndId = new String[menu.getMenu().size()]; //Initiate with space for all menu coffees.
+
+        int coffeeNamesAndIdIndex = 0;
+        for (Coffee coffee : menu.getMenu().values()) {
+            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee.getMenuItemName() + " - " + coffee.getMenuItemId();
+            coffeeNamesAndIdIndex++;
+        }
+        Arrays.sort(coffeeNamesAndId); // Present coffees in alphabetical order.
+        return coffeeNamesAndId;
     }
 }
