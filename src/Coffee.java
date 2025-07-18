@@ -51,7 +51,7 @@ public class Coffee {
         //case change drink type to match example?
         sb.append("- Type: ").append(drinkType).append("\n");
         sb.append("- Number of shots: ").append(numOfShots).append("\n");
-        sb.append("- Sugar: ").append(sugar ? "yes" : "no").append("\n");
+        sb.append("- Sugar: ").append(sugar ? "Yes" : "No").append("\n");
         sb.append("- Milk options: ").append(
                 // Take input from Collection of Enums, use the Enum's toString() method, and output the
                 // collection items separated by a comma and space. Code idea from StackOverflow:

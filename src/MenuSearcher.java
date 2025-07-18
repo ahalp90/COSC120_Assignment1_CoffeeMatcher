@@ -98,6 +98,17 @@ public class MenuSearcher {
                     dreamCoffee = getUserDreamCoffee();
                 }
                 case "View my Coffee Matches and Order" -> {
+                    //TODO REMOVE TEST CODE***********************************************************************************************
+                    System.out.println("\n\nCoffee you're about to use to match is:");
+                    System.out.println(dreamCoffee.hashCode());
+                    for (Milk m : dreamCoffee.getMilkSet())System.out.println(m);
+                    System.out.println(dreamCoffee.getDrinkType());
+                    for (String s : dreamCoffee.getExtrasSet())System.out.println(s);
+                    System.out.println(dreamCoffee.getNumOfShots());
+                    System.out.println(dreamCoffee.getSugar() ? "yes" : "no");
+                    System.out.println("min"+dreamCoffee.getPriceMin()+" max"+dreamCoffee.getPriceMax());
+                    System.out.println(dreamCoffee.getProvenance());
+
                     viewMatchesAndOrder(dreamCoffee);
                 }
                 // This default should never be reached in normal program flow.
@@ -466,6 +477,17 @@ public class MenuSearcher {
         Coffee dreamCoffee = new Coffee("","",-1, numOfShots, sugar, drinkType, provenance, milkSet, extrasSet, "");
         dreamCoffee.setPriceMin(priceMin);
         dreamCoffee.setPriceMax(priceMax);
+
+        //TODO REMOVE TEST CODE***********************************************************************************************
+        System.out.println("\n\nCoffee you've just entered is is:");
+        System.out.println(dreamCoffee.hashCode());
+        for (Milk m : dreamCoffee.getMilkSet())System.out.println(m);
+        System.out.println(dreamCoffee.getDrinkType());
+        for (String s : dreamCoffee.getExtrasSet())System.out.println(s);
+        System.out.println(dreamCoffee.getNumOfShots());
+        System.out.println(dreamCoffee.getSugar() ? "yes" : "no");
+        System.out.println("min"+dreamCoffee.getPriceMin()+" max"+dreamCoffee.getPriceMax());
+        System.out.println(dreamCoffee.getProvenance());
         return dreamCoffee;
     }
 
@@ -484,22 +506,22 @@ public class MenuSearcher {
      * listed milk option (or no milk if it's milk-free).
      */
     public static Coffee viewMatchesAndOrder(Coffee dreamCoffee){
-//        String[] allCoffeesArray= allCoffeesArray(); // Build coffees string from helper method.
-        Object[] allCoffeesArray = allCoffeesNameAndId();
+        Coffee[] coffeeNamesAndId = allCoffeesNameAndId(); // Build drop-down list of coffees array from helper method.
+        //Call helper method to fill text of matched coffees.
+        String coffeeMatcherText = buildCoffeeMatchString(dreamCoffee);
 
         // All coffees menu GUI with scrollbar.
-        JTextArea textArea = new JTextArea(buildCoffeeMatchString(dreamCoffee)); //Call helper method to fill text.
+        JTextArea textArea = new JTextArea(coffeeMatcherText);
         JScrollPane scrollPane = new JScrollPane(textArea);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         scrollPane.setPreferredSize(new Dimension(500,500 ) );
 
-//        String selectedCoffeeNameAndId =
-//                (String) JOptionPane.showInputDialog(null, scrollPane, APP_NAME,
+
         Coffee selectedCoffee =
                 (Coffee) JOptionPane.showInputDialog(null, scrollPane, APP_NAME,
                         JOptionPane.INFORMATION_MESSAGE, icon,
-                        allCoffeesArray, null);
+                        coffeeNamesAndId, null);
         if (selectedCoffee == null) {
             mainMenuGui();
         }
@@ -761,7 +783,7 @@ public class MenuSearcher {
      * and if so, their details.
      */
     public static String buildCoffeeMatchString(Coffee dreamCoffee) {
-        Set<Coffee> matches = new HashSet<>(menu.coffeeMatcher(dreamCoffee));
+        Set<Coffee> matches = new HashSet<>(menu.coffeeMatcher(dreamCoffee)); // Helper method in Menu matches the coffees.
         StringBuilder viewMatchesSB = new StringBuilder();
         viewMatchesSB.append("**********Java Bean Coffee Matcher and Ordering System**********\n\n");
         if (matches.isEmpty()) {
@@ -781,38 +803,32 @@ public class MenuSearcher {
         return viewMatchesSB.toString();
     }
 
-//    /**
-//     * Create a String Array of all coffees. Helper method to tidy up viewMatchesAndOrder.
-//     * Used to populate drop-down GUI selection list.
-//     *
-//     * Uses a foreach with external counter to simultaneously iterate through Array and Map.
-//     * Idea from https://www.tutorialspoint.com/java-program-to-convert-collection-into-array
-//     *
-//     * Adds Ids after plain language names, as these are the unique identifiers and could
-//     * potentially help people ordering if multiple coffees of the same plain language name exist.
-//     *
-//     * @return coffeeNamesAndID, a String[] with all coffees listed in the format "[name] - [menuItemId]"
-//     */
-//    public static String [] allCoffeesArray() {
-//        String[] coffeeNamesAndId = new String[menu.getMenu().size()]; //Initiate with space for all menu coffees.
-//
-//        int coffeeNamesAndIdIndex = 0;
-//        for (Coffee coffee : menu.getMenu().values()) {
-//            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee.getMenuItemName() + " - " + coffee.getMenuItemId();
-//            coffeeNamesAndIdIndex++;
-//        }
-//        Arrays.sort(coffeeNamesAndId); // Present coffees in alphabetical order.
-//        return coffeeNamesAndId;
-//    }
-    public static Object[] allCoffeesNameAndId(){
-        Object[] coffeeNamesAndId = new Object[menu.getMenu().size()];
+    /**
+     * Create a Coffee Array of all coffees. Helper method for viewMatchesAndOrder().
+     * Used to populate drop-down GUI selection Array.
+     *
+     * Uses an array of custom objects with custom toString representation invoked on Coffee class.
+     * Idea from: https://stackoverflow.com/questions/4078714/swing-selecting-among-a-set-of-objects
+     *
+     * Adds Ids after plain language names, as these are the unique identifiers and could
+     * potentially help people ordering if multiple coffees of the same plain language name exist.
+     *
+     * @return coffeeNamesAndID, a Coffee[] with all coffees listed alphabetically in the
+     * format "[name] - [menuItemId]"
+     */
 
-        int coffeeNamesAndIdIndex = 0;
-        for (Coffee coffee : menu.getMenu().values()) {
-            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee;
-            coffeeNamesAndIdIndex++;
-        }
-        Arrays.sort(coffeeNamesAndId); // Present coffees in alphabetical order.
+    public static Coffee[] allCoffeesNameAndId(){
+        // toArray() with type specification and right-sized array per
+        // https://stackoverflow.com/questions/28392705/difference-between-toarrayt-a-and-toarray?rq=3 and
+        // https://stackoverflow.com/questions/174093/toarraynew-myclass0-or-toarraynew-myclassmylist-size?noredirect=1&lq=1
+        // Array of all coffees; Coffee.toString() auto-gives appropriate names.
+        Coffee[] coffeeNamesAndId = menu.getMenu().values().toArray(new Coffee[0]);
+
+        // Sort array alphabetically for GUI use.
+        // Can't sort an array of custom objects by default comparison. Need to specify a comparator.
+        // Code from https://www.geeksforgeeks.org/java/sort-an-array-in-java-using-comparator/ .
+        Arrays.sort(coffeeNamesAndId, Comparator.comparing(coffee -> coffee.getMenuItemName()));
+
         return coffeeNamesAndId;
     }
 
@@ -1064,14 +1080,17 @@ public class MenuSearcher {
                     JOptionPane.showMessageDialog(null,
                             "Sorry, the number of shots cannot be negative!\n"
                                     + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
+                    continue; // Next iteration.
                 }
                 // Avoids situations of accidentally excessive input, unsafe choices and the
-                // possibility that a user inputs a number that exceeds the integer range.
-                if (numOfShots > 20) {
+                // possibility that a user inputs a number that exceeds the integer datatype range.
+                if (numOfShots > 100) {
                     JOptionPane.showMessageDialog(null,
                             "Sorry, we don't feel safe selling you a coffee with that much caffeine!\n"
                                     + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
+                    numOfShots = -1; // Reset counter if successful parseInt but exceeds limit.
                 }
+
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null,
                         "Sorry, input must be in whole numbers, eg. 2\n"
@@ -1090,7 +1109,7 @@ public class MenuSearcher {
                 "Would you like sugar?",
                 APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, sugarOptions, "No");
         if (sugarString == null) mainMenuGui();
-        boolean sugar = sugarString.equals("yes"); // boolean initialises to false otherwise.
+        boolean sugar = sugarString.equalsIgnoreCase("Yes"); // boolean initialises to false otherwise.
         return sugar;
     }
 
