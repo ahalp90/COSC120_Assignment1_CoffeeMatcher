@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.*;
 import java.util.*;
 import java.util.List;
@@ -23,16 +24,19 @@ public class MenuSearcher {
     // GUI menus allowing return to the main menu, without needing to repeatedly explicitly pass the
     // object reference.
     private static Menu menu;
+    //Initialise coffee to support passing as parameter in mainMenuGui switches.
+    private static Coffee dreamCoffee;
 
 
     //**********MAIN METHOD**********
     public static void main(String args[]) {
-        Menu menu = loadMenuItems();
-        // Handle the exception that somehow, despite specific exception handling at all stages of
-        // loadMenuItems(), the Menu object failed to load.
-        if (menu == null || menu.getMenu().isEmpty()) {
+        menu = loadMenuItems();
+        // Handle the exceptions that (1) the Menu has no values, or (2) the Menu loaded as an empty
+        // set; error-checking through loadMenuItems() suggests this would be because the provided
+        // menu.txt contained no coffees below the header line.
+        if (MenuSearcher.menu == null || MenuSearcher.menu.getMenu().isEmpty()) {
             JOptionPane.showMessageDialog(null,
-                    "The menu could not be loaded. The program will exit when you exit this dialogue box.",
+                    "The menu could not be loaded. The program will exit when you close this dialogue box.",
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
@@ -49,12 +53,13 @@ public class MenuSearcher {
             + ICON_PATH + " and that you have permission to access this path.");
         }
 
-        loadMainMenu();
+        mainMenuGui();
     }
 
     //TODO*********REMEMBER TO SORT COFFEES DISPLAY ON MENU AND ORDERING MENU FROM LEAST EXPENSIVE to MOST EXPENSIVE->
-    public static void loadMainMenu() {
-        // TODO null check exit app with message.
+    public static void mainMenuGui() {
+
+
         String menuDialogString =
                 "Welcome to the Java Bean Order Genie."
                         +"\nTake your time to search the menu for the coffee of your dreams."
@@ -64,33 +69,34 @@ public class MenuSearcher {
                         +"\nIf haven't described your ideal coffee but still want to order, that's okay."
                         +"\nGo ahead and click 'View my Coffee Matches and Order' anyway.";
 
+        String[] mainMenuOptions =
+                {"View the Full Menu", "Describe my Ideal Coffee", "View my Coffee Matches and Order"};
         // Main Menu GUI
-        MainMenuOptions menuChoice = (MainMenuOptions) JOptionPane.showInputDialog(
+        String menuChoice = (String) JOptionPane.showInputDialog(
                 null,
                 menuDialogString,
                 APP_NAME,
                 JOptionPane.QUESTION_MESSAGE,
                 icon,
-                MainMenuOptions.values(),
-                MainMenuOptions.DESCRIBE_COFFEE);
-        // Handle closure of main menu without option selection.
-        if  (menuChoice == null) System.exit(0);
+                mainMenuOptions,
+                "Describe my Ideal Coffee");
 
         switch (menuChoice) {
-            case VIEW_FULL_MENU -> {
-                showCoffeesMenu();
+            case null -> {
+                System.out.println("Program exited successfully from Main Menu.");
+                System.exit(0);
             }
-            case DESCRIBE_COFFEE -> {
-//                getUserDreamCoffee();
+            case "View the Full Menu" -> showCoffeesMenu();
+            case "Describe my Ideal Coffee" -> {
+                dreamCoffee = getUserDreamCoffee();
             }
-            case VIEW_MATCHES_AND_ORDER -> {
-//                viewMatchesAndOrder();
-            }
+            case "View my Coffee Matches and Order" -> viewMatchesAndOrder(dreamCoffee);
             // This default should never be reached in normal program flow.
-            default -> throw new IllegalStateException("Unexpected value: " + menuChoice);
+            default -> {
+                System.err.println("Unexpected value at main menu selection: " + menuChoice);
+                System.exit(1);
+            }
         }
-
-
     }
 
     /**
@@ -216,9 +222,11 @@ public class MenuSearcher {
 
             //**********SUGAR**********
             boolean sugar;
-            if ("yes".equalsIgnoreCase(elements[4])) {
+            // Sugar appears currently input as all lower case in menu txt, but should be formatted as
+            // 'Yes'/'No' for user experience in app.
+            if ("Yes".equalsIgnoreCase(elements[4])) {
                 sugar = true;
-            } else if ("no".equalsIgnoreCase(elements[4])) {
+            } else if ("No".equalsIgnoreCase(elements[4])) {
                 sugar = false;
             } else {
                 System.err.println("Error: The sugar status of the coffee at item line "
@@ -418,12 +426,15 @@ public class MenuSearcher {
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         scrollPane.setPreferredSize(new Dimension(500,500 ) );
-        JOptionPane.showOptionDialog(null, scrollPane, APP_NAME,JOptionPane.DEFAULT_OPTION,
+        int guiClosedCheck = JOptionPane.showOptionDialog(null, scrollPane, APP_NAME,JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE, icon, null, null);
+
+        // -1 is close menu button, 0 is 'ok' button.
+        if (guiClosedCheck == -1 || guiClosedCheck == 0) mainMenuGui();
     }
     /**
      * Requests user input/selection of coffee features e.g.  type [hot coffee/frappe], milk
-     * type (including a no-milk option), number of shots, sugar [yes/no], price range, and extras),
+     * type (including a no-milk option), number of shots, sugar [Yes/No], price range, and extras),
      *
      * Assignment and exception handling code adapted from COSC120 Tute 4 solutions 3_4,
      * FindADog.java getUserCriteria() method, ln167-243.
@@ -435,7 +446,7 @@ public class MenuSearcher {
         DrinkType drinkType = (DrinkType) JOptionPane.showInputDialog(null,
                 "For starters, what sort of drink would you like? Hot Coffee or Frappe?",
                 APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, DrinkType.values(), null);
-        if  (drinkType == null) loadMainMenu();
+        if  (drinkType == null) mainMenuGui();
 
         //**********GET MILK SET**********
         // User only selects one milk--milk choices are usually exclusive preferences.
@@ -449,168 +460,26 @@ public class MenuSearcher {
         Milk selectedMilk = (Milk) JOptionPane.showInputDialog(null,
                 "What sort of milk would you like?",
                 APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Milk.values(), null);
-        if  (selectedMilk == null) loadMainMenu();
+        if (selectedMilk == null) mainMenuGui();
 
         //Necessary to send to Set as the Coffee parameters expect a Set.
         Set<Milk> milkSet = EnumSet.of(selectedMilk);
 
         //**********GET PRICE MIN**********
-        // Set min and max price fields for looping and ensuring priceMax>priceMin.
-        float priceMin = -1,  priceMax = -1;
+        // Declare priceMin in calling method to ensure priceMax>priceMin. -1 initialisation for looping.
+        float priceMin = -1;
+        priceMin = getDreamPriceMin(priceMin); // Assign to pre-initialised local float.
 
-        // null-checkable input var idea adapted from my solution to COSC120 Tute 4, FindADog.java
-        // ln112-129.
-        String priceMinInput; //Declared outside the loop to avoid recreating the object.
-        do {
-            // The expanded JOptionPane with icon placement returns an object, not String. Requires
-            // explicit casting. Idea from response by selofain, Nov 20, 2019, at
-            // https://stackoverflow.com/questions/33961793/custom-icon-joptionpane-showinputdialog
-            priceMinInput = (String) JOptionPane.showInputDialog(null,
-                    "What's the minimum you'd like to spend on your drink?",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
-            if (priceMinInput == null) {
-                loadMainMenu();
-                break; //End loop because exiting to different GUI method.
-            }
-            try {
-                priceMin = Float.parseFloat(priceMinInput);
-                if (priceMin < 0) {
-                    JOptionPane.showMessageDialog(null,
-                            "Sorry, input must be in whole digit or decimal format, eg. 3.5\n"
-                            +"Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(null,
-                        "Sorry, input must be in whole digit or decimal format, eg. 3.5\n"
-                                +"Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
-            }
-        } while(priceMin < 0);         // Allow 0 min price.
+
 
         //**********GET PRICE MAX**********
-        String priceMaxInput;
-        do {
-            priceMaxInput = (String) JOptionPane.showInputDialog(null,
-                    "What's the maximum you'd like to spend on your drink?",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
-            if (priceMaxInput == null) {
-                loadMainMenu();
-                break; //End loop because exiting to different GUI method.
-            }
-            try {
-                priceMax = Float.parseFloat(priceMaxInput);
-                if (priceMin < priceMax) {
-                    JOptionPane.showMessageDialog(null,
-                            "Sorry, your maximum price must be equal to or larger than your minimum.\n"
-                                    +"Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(null,
-                        "Sorry, input must be in whole digit or decimal format, eg. 4.5\n"
-                                +"Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
-            }
-        } while(priceMax < priceMin);
+        float priceMax = getDreamPriceMax(priceMin);
 
-        //**********GET EXTRAS**********
 
-        // Create array of menu extras set with "Skip" option.
-        // TreeSet sorts alphabetically (consistent user experience choice), and then LinkedHashSet
-        // preserves insertion order--so 'Skip' and 'Finished Adding Extras' can sit at the end of
-        // the Collection (and subsequent option dropdown choices).
-        Set<String> extrasSetWithMenuOptions = new TreeSet<>(menu.getAllMenuExtras());  // Doesn't actually contain menu options yet.
-        extrasSetWithMenuOptions = new LinkedHashSet<>(extrasSetWithMenuOptions);
-        if (extrasSetWithMenuOptions.contains("Skip") || extrasSetWithMenuOptions.contains("Finished Adding Extras")) {
-            System.err.println(
-                    "Extras set read from menu.txt contained extras identified as 'Skip' or "
-                            +"'Finished Adding Extras'. These explicit extra selectors have been "
-                            +"suppressed in favour of the relevant actions in user dreamCoffee extras selection.");
-        }
-        extrasSetWithMenuOptions.add("Skip");
-        extrasSetWithMenuOptions.add("Finished Adding Extras");
-        // toArray() requires explicit return type for the array type required. Though the COSC 120
-        // Tute 4 3_4 FindADog.java ln170 example indicates it's not required if called in
-        // JOptionPane parameters.
-        String[] extrasSelectionArray = extrasSetWithMenuOptions.toArray(new String[0]);
-
-        Set<String> extrasSet = new HashSet<>(); // Hold all user extras choices.
-        String extraToAddToSet; // Container for individual extra selections.
-        // Labelled loop to break from within switch. Idea from betteroutthanin's response of April 2, 2014:
-        // https://stackoverflow.com/questions/22823395/java-how-can-i-break-a-while-loop-under-a-switch-statement
-        extrasLoop: while (true) {
-            extraToAddToSet = (String) JOptionPane.showInputDialog(null,
-                    "Which extras would you like?\n"
-                            + "\nWhen you're done, select Finished Adding Extras' to move to your dream coffee's next attribute."
-                            + "\nSelect 'Skip' to skip adding any extras preferences; " +
-                            "this will also clear any extras you chose before changing your mind.",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, extrasSelectionArray, null);
-
-            switch (extraToAddToSet) {
-                case null -> {
-                    loadMainMenu();
-                    break extrasLoop; //End loop because exiting to different GUI method.
-                }
-
-                case "Skip" -> {
-                    extrasSet.clear();
-                    break extrasLoop;
-                }
-
-                case "Finished Adding Extras" -> {
-                    break extrasLoop;
-                }
-
-                default -> {
-                    if (extrasSet.contains(extraToAddToSet)) {
-                        JOptionPane.showMessageDialog(null,
-                                "You've already selected that extra. Extras that you've selected include: "
-                                        + String.join(", ", extrasSet) + "\nPlease try again.",
-                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, icon);
-                    } else {
-                        extrasSet.add(extraToAddToSet);
-                    }
-                }
-            }
-        }
-
-        //**********GET PROVENANCE**********
-        Provenance provenance = (Provenance) JOptionPane.showInputDialog(null,
-                "Terroir is important. What's the provenance of the beans you're after?",
-                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Provenance.values(), null);
-        if  (provenance == null) loadMainMenu();
-
-        //**********GET NUMBER OF SHOTS**********
-        // Largely repeats get price min code.
-        int numOfShots = -1; //Placeholder value used for looping.
-
-        String numOfShotsInput;
-        do {
-            numOfShotsInput = (String) JOptionPane.showInputDialog(null,
-                    "How many shots of coffee would you like?",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
-            if (numOfShotsInput == null) {
-                loadMainMenu();
-                break; //End loop because exiting to different GUI method.
-            }
-            try {
-                numOfShots = Integer.parseInt(numOfShotsInput);
-                if (numOfShots < 0) {
-                    JOptionPane.showMessageDialog(null,
-                            "Sorry, the number of shots cannot be negative!\n"
-                                    +"Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(null,
-                        "Sorry, input must be in whole numbers, eg. 2\n"
-                                +"Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
-            }
-        } while(numOfShots < 0);         // Allow 0 min shots in case non-caffeinated drinks are sold.
-
-        //**********GET SUGAR**********
-        String[] sugarOptions = {"yes", "no"};
-        String sugarString = (String) JOptionPane.showInputDialog(null,
-                "Would you like sugar?",
-                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, sugarOptions, "no");
-        if (sugarString==null) loadMainMenu();
-        boolean sugar = sugarString.equals("yes"); // boolean initialises to false otherwise.
+        Set<String> extrasSet = getDreamExtrasSet();
+        Provenance provenance = getDreamProvenance();
+        int numOfShots = getDreamNumOfShots();
+        boolean sugar = getDreamSugar();
 
         Coffee dreamCoffee = new Coffee("","",-1, numOfShots, sugar, drinkType, provenance, milkSet, extrasSet, "");
         dreamCoffee.setPriceMin(priceMin);
@@ -674,7 +543,7 @@ public class MenuSearcher {
      * Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln82-160. Regex patterns found therein.
      * However,regex Pattern compilations moved to this calling method to avoid recompilation in helpers at each loop.
      *
-     * @return customerOrdering, a Geek record with the user's name, email and phone number.
+     * @return geekOrdering, a Geek record with the user's name, email and phone number.
      */
     public static Geek getUserInfo(){
         //**********GET USER NAME**********
@@ -692,7 +561,7 @@ public class MenuSearcher {
                             +"\nEg. MaryJane Parker",
                     APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
             if (fullName == null) {
-                loadMainMenu();
+                mainMenuGui();
                 break; //End loop because exiting to different GUI method.
             }
         } while(!matchValidInputString(fullNamePattern, fullName));
@@ -707,7 +576,7 @@ public class MenuSearcher {
                     "Please enter your email address (eg. leetgeek@javajunky.com)",
                     APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
             if (email == null) {
-                loadMainMenu();
+                mainMenuGui();
                 break; //End loop because exiting to different GUI method.
             }
         } while(!matchValidInputString(emailPattern, email));
@@ -723,29 +592,29 @@ public class MenuSearcher {
                     "Please enter your phone number in 10-digit format (eg. 04001337000)",
                     APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
             if (phoneNoInput == null) {
-                loadMainMenu();
+                mainMenuGui();
                 break; //End loop because exiting to different GUI method.
             }
         } while(!matchValidInputString(phonePattern, phoneNoInput));
         long phoneNo = Long.parseLong(phoneNoInput);
 
-        Geek customerOrdering = new Geek(fullName, email, phoneNo);
-        return customerOrdering;
+        Geek geekOrdering = new Geek(fullName, email, phoneNo);
+        return geekOrdering;
     }
 
     /**
      * Populate an Order record with all attribute values relevant to customer order
-     * @param customerOrdering Geek record containing the customer's personal details.
+     * @param geekOrdering Geek record containing the customer's personal details.
      * @param selectedCoffeeWithCustomisations Coffee instance containing the attributes
      *                                         of the customer's desired coffee.
      * @return customerOrder, an Order record instance with the relevant attribute values for
      * writing the order to file.
      */
-    public static Order createCustomerOrderRecord (Geek customerOrdering, Coffee selectedCoffeeWithCustomisations){
+    public static Order createCustomerOrderRecord (Geek geekOrdering, Coffee selectedCoffeeWithCustomisations){
         Order customerOrder = new Order(
-                customerOrdering.name(),
-                customerOrdering.phoneNo(),
-                customerOrdering.email(),
+                geekOrdering.name(),
+                geekOrdering.phoneNo(),
+                geekOrdering.email(),
                 selectedCoffeeWithCustomisations.getMenuItemName(),
                 selectedCoffeeWithCustomisations.getMenuItemId(),
                 selectedCoffeeWithCustomisations.getDrinkType(),
@@ -770,8 +639,9 @@ public class MenuSearcher {
      * Files.writeString() method idea from Roberto's answer of Feb 24 2014:
      * https://stackoverflow.com/questions/7366266/best-way-to-write-string-to-file-using-java-nio
      * @param customerOrder the record holding all attribute values relevant to the order.
+     * @return orderString contents of the order txt. Can be displayed to user in following GUI.
      */
-    public static writeCustomerOrderToTxt (Order customerOrder){
+    public static String writeCustomerOrderToTxt (Order customerOrder){
         // Check write permissions for directory. "./" must exist because it's the program's root
         // directory, but if the write out path was moved then there should also be a dir.exists()
         // check.
@@ -779,7 +649,8 @@ public class MenuSearcher {
         if (!Files.isWritable(writeOutDir)){
             System.err.println("Error: File " + writeOutDir + " is not writable.");
             JOptionPane.showMessageDialog(null,
-                    "Error: Your order could not be written to the system.The program will exit when you exit this dialogue box.",
+                    "Error: Your order could not be written to the system.The program will exit when "
+                            +"you exit this dialogue box.",
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
@@ -799,6 +670,8 @@ public class MenuSearcher {
         } while (Files.exists(fullOutputPath) || requestNo > maxRequestsNo);
 
         if (requestNo == maxRequestsNo) {
+            System.err.println("When attempting to write order to output text, maxRequestsNo was "
+                    +"exceeded for the user's phone number of "+customerOrder.phoneNo()+".");
             JOptionPane.showMessageDialog(null,
                     "Error: It looks like you've ordered you've ordered "+maxRequestsNo
                             +" coffees with this phone number.\n"
@@ -809,12 +682,13 @@ public class MenuSearcher {
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
+        String orderString = orderStringToWriteOut(customerOrder); // Helper method builds String.
 
         // WRITE OUT ORDER TO THE FILEPATH DETERMINED ABOVE
         try {
             Files.writeString(
                     fullOutputPath,
-                    orderStringToWriteOut(customerOrder) // Helper method builds String.
+                    orderString
             );
         } catch (IOException e) {
             System.err.println("Error writing output file: " + fullOutputPath + "\n" + e.getMessage());
@@ -822,8 +696,10 @@ public class MenuSearcher {
                     "Error: Your order could not be saved to our system. We're really sorry!"
                             +"\nYou're welcome to try again, or else go order at the front counter.",
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
-            loadMainMenu();
+            mainMenuGui();
         }
+        System.out.println("Order has been saved to " + fullOutputPath + "\n");
+        return orderString; // Returns orderString, which can be displayed in success GUI window.
     }
     /**
      * Capitalise the first letter of each word in a string, and make other letters lowercase.
@@ -938,4 +814,247 @@ public class MenuSearcher {
         Arrays.sort(coffeeNamesAndId); // Present coffees in alphabetical order.
         return coffeeNamesAndId;
     }
+
+    /**
+     * Round String to 2 decimal places. Rounds up at halves. BigDecimal offers best precision for monetary calculations.
+     * User might input a figure with many decimal places, but standard commercial transactions are in 2f.
+     *
+     * Idea inspired from discussion at
+     * https://stackoverflow.com/questions/153724/how-to-round-a-number-to-n-decimal-places-in-java and
+     * https://www.baeldung.com/java-bigdecimal-biginteger
+     *
+     * @param value a String of digits with, optionally, a point to indicate a decimal
+     * @return a float of the input string, rounded to 2f.
+     */
+    public static float roundStringTo2fFloat (String value){
+        return new BigDecimal(value).setScale(2, BigDecimal.ROUND_HALF_UP).floatValue();
+    }
+
+    //**************************************GET DREAMCOFFEE PREFERENCES HELPER METHODS************************************
+
+    /**
+     * Gets user input minimum price for a coffee.
+     *
+     * null-checkable input var idea adapted from my solution to COSC120 Tute 4, FindADog.java
+     * ln112-129.
+     *
+     *  The expanded JOptionPane with icon placement returns an object, not String. Requires
+     *  explicit casting. Idea from response by selofain, Nov 20, 2019, at
+     *  https://stackoverflow.com/questions/33961793/custom-icon-joptionpane-showinputdialog
+     *
+     * @param priceMin float Object 'priceMin' declared in calling method to use for comparison with priceMax;
+     * should help maintainability and contextual visibility in calling method.
+     * @return priceMin float value, rounded to 2f decimal.
+     */
+    public static float getDreamPriceMin(float priceMin){
+        String priceMinInput; //Declared outside the loop to avoid recreating the object.
+        do {
+            priceMinInput = (String) JOptionPane.showInputDialog(null,
+                    "What's the minimum you'd like to spend on your drink?",
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+            if (priceMinInput == null) {
+                mainMenuGui();
+                break; //End loop because exiting to different GUI method.
+            }
+            try {
+                priceMin = roundStringTo2fFloat(priceMinInput);
+                if (priceMin < 0) {
+                    JOptionPane.showMessageDialog(null,
+                            "Sorry, input must be in whole digit or decimal format, eg. 3.5\n"
+                                    + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null,
+                        "Sorry, input must be in whole digit or decimal format, eg. 3.5\n"
+                                + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
+            }
+        } while (priceMin < 0);         // Allow 0 min price.
+        return priceMin;
+    }
+
+    /**
+     * Gets user input regarding maximum price for a coffee.
+     * priceMax must exceed priceMin.
+     * NB. 2f conversion means that in situations where the priceMin is 1 rounded decimal up
+     * from the priceMax, priceMin = priceMax, and the program proceeds as intended.
+     * Eg. If priceMinInput= 2 and priceMaxInput= 1.999, they're both considered to = 2.00.
+     * @param priceMin float passed from calling method local variable to allow Max>Min comparison.
+     * @return float (2f rounded of the user's maximum price.
+     */
+    public static float getDreamPriceMax(float priceMin) {
+        float priceMax = -1;
+        String priceMaxInput;
+        do {
+            priceMaxInput = (String) JOptionPane.showInputDialog(null,
+                    "What's the maximum you'd like to spend on your drink?",
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+            if (priceMaxInput == null) {
+                mainMenuGui();
+                break; //End loop because exiting to different GUI method.
+            }
+            try {
+                priceMax = roundStringTo2fFloat(priceMaxInput);
+                if (priceMax < priceMin) {
+                    JOptionPane.showMessageDialog(null,
+                            "Sorry, your maximum spend must be more than or equal to your minimum spend.\n"
+                                    + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null,
+                        "Sorry, input must be in whole digit or decimal format, eg. 4.5\n"
+                                + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
+            }
+        } while (priceMax < priceMin);
+        return priceMax;
+    }
+    /**
+     * Gets user input to compose their set of desired extras.
+     * GUI with drop-down menu of alphabetically sorted extras derived from all menu extras, and custom buttons.
+     * Excessive hours spent trying to make this work based on ideas here:
+     * https://docs.oracle.com/javase/tutorial/uiswing/components/dialog.html#input
+     * https://stackoverflow.com/questions/23715241/java-swing-joptionpane-combine-showinputdialog-and-showoptiondialog
+     * https://coderanch.com/t/671124/java/Textbox-Combobox-time-JOptionPane
+     * JPanel version doesn't quite look as nice.
+     * @return a Set of Strings of the user's desired extras.
+     */
+    public static Set<String> getDreamExtrasSet() {
+        // Alphabetically sorted TreeSet of menu extras--alphabetical for consistent user experience.
+        Set<String> extrasSetWithMenuOptions = new TreeSet<>(menu.getAllMenuExtras());
+
+        //**********Objects to populate GUI params**********
+        // toArray() requires explicit return type for the array type required. Though the COSC 120
+        // Tute 4 3_4 FindADog.java ln170 example indicates it's not required if called in
+        // JOptionPane parameters.
+        String[] extrasSelectionArray = extrasSetWithMenuOptions.toArray(new String[0]);
+
+        Set<String> extrasSet = new HashSet<>(); // Hold all user extras choices.
+        String extraToAddToSet; // Container for individual extra selections.
+
+        String extrasDialogMessage =
+                "Which extras would you like?"
+                        + "\n\nWhen you're done, select Finished Adding Extras' to move to your dream coffee's next attribute."
+                        + "\n\nSelect 'Skip' to skip adding any extras preferences; " +
+                        "this will also clear any extras you chose before changing your mind.";
+
+        JComboBox<String> extrasDropDown = new JComboBox<>(extrasSelectionArray);
+        String[] extrasButtons = {"Add Selected Extra", "Skip Adding Extras", "Finished Adding Extras"};
+        // Object array stores the dialogue prompt and the JComboBox. Magic!
+        Object[] extrasMessageAndDropDown = {extrasDialogMessage, extrasDropDown};
+
+        // Labelled loop to break from within switch. Idea from betteroutthanin's response of April 2, 2014:
+        // https://stackoverflow.com/questions/22823395/java-how-can-i-break-a-while-loop-under-a-switch-statement
+        extrasLoop:
+        while (true) {
+            int buttonChoice = JOptionPane.showOptionDialog(null,
+                    extrasMessageAndDropDown,
+                    APP_NAME, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, icon, extrasButtons, null);
+            extraToAddToSet = (String) extrasDropDown.getSelectedItem();
+
+            // Switch on button choice (showOptionDialog returns int).
+            switch (buttonChoice) {
+                // User closed window.
+                case -1 -> {
+                    extrasSet.clear(); // Ensure extrasSet is cleared before return.
+                    mainMenuGui(); // Go to main menu.
+                    break extrasLoop; //End loop because exiting to different GUI method.
+                }
+                //Attempt to add selected extra, either notifying that the element has already been
+                //added, or adding it to the user's Set.
+                case 0 -> {
+                    if (extrasSet.contains(extraToAddToSet)) {
+                        JOptionPane.showMessageDialog(null,
+                                "You've already selected that extra. Your selected extras include: "
+                                        + String.join(", ", extrasSet)
+                                        + "\nPlease select another extra, or click 'Finished Adding Extras'"
+                                        + " to move to the next screen.",
+                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, icon);
+                    } else {
+                        extrasSet.add(extraToAddToSet);
+                    }
+                }
+                // User skips adding extras--ensure their extras set is cleared.
+                case 1 -> {
+                    extrasSet.clear();
+                    break extrasLoop;
+                }
+                // User wants their selected extras. Ensure it's not erroneously clicked on an empty set.
+                case 2 -> {
+                    if (extrasSet.isEmpty()){
+                        JOptionPane.showMessageDialog(null,
+                                "You've tried to finish this selection with an empty extras set."
+                                        +"\nIf that's what you intended, then please click 'Skip'."
+                                        +"\nOtherwise, please add extras before moving to the next screen.",
+                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, icon);
+                    } else {
+                        break extrasLoop;
+                    }
+                }
+            }
+        }
+        return extrasSet;
+    }
+
+    /**
+     * Gets user input coffee provenance preference via GUI.
+     * @return Provenance Enum
+     */
+    public static Provenance getDreamProvenance() {
+        Provenance provenance = (Provenance) JOptionPane.showInputDialog(null,
+                "Terroir is important. What's the provenance of the beans you're after?",
+                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Provenance.values(), null);
+        if (provenance == null) mainMenuGui();
+    }
+    /**
+     * Gets user input number of shots preference via GUI.
+     * @return int numOfShots
+     */
+    public static int getDreamNumOfShots() {
+        // Largely repeats get price min code and relevant attributions.
+        int numOfShots = -1; //Placeholder value used for looping.
+
+        String numOfShotsInput;
+        do {
+            numOfShotsInput = (String) JOptionPane.showInputDialog(null,
+                    "How many shots of coffee would you like?",
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+            if (numOfShotsInput == null) {
+                mainMenuGui();
+                break; //End loop because exiting to different GUI method.
+            }
+            try {
+                numOfShots = Integer.parseInt(numOfShotsInput);
+                if (numOfShots < 0) {
+                    JOptionPane.showMessageDialog(null,
+                            "Sorry, the number of shots cannot be negative!\n"
+                                    + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
+                }
+                // Avoids situations of accidentally excessive input, unsafe choices and the
+                // possibility that a user inputs a number that exceeds the integer range.
+                if (numOfShots > 20) {
+                    JOptionPane.showMessageDialog(null,
+                            "Sorry, we don't feel safe selling you a coffee with that much caffeine!\n"
+                                    + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null,
+                        "Sorry, input must be in whole numbers, eg. 2\n"
+                                + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
+            }
+        } while (numOfShots < 0);         // Allow 0 min shots in case non-caffeinated drinks are sold.
+        return numOfShots;
+    }
+    /**
+     * Gets user input sugar preference ('Yes'/'No') via GUI.
+     * @return boolean value of sugar preference.
+     */
+    public static boolean getDreamSugar() {
+        String[] sugarOptions = {"Yes", "No"};
+        String sugarString = (String) JOptionPane.showInputDialog(null,
+                "Would you like sugar?",
+                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, sugarOptions, "No");
+        if (sugarString == null) mainMenuGui();
+        boolean sugar = sugarString.equals("yes"); // boolean initialises to false otherwise.
+        return sugar;
+    }
+
 }

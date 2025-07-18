@@ -42,12 +42,11 @@ public class Menu {
                     && (i.getDrinkType() == dreamCoffee.getDrinkType())
                     && (i.getProvenance() == dreamCoffee.getProvenance())
                     && (i.getMilkSet().containsAll(dreamCoffee.getMilkSet()))
-                    // Add the coffee if (1) the menu coffee has no extras, (2) the user has no
-                    // extras preference, or (3) there is any overlapping element between the user's
-                    // extras choices and the menu coffee's extras options.
+                    // Add the coffee if (1) the user's dreamCoffee has no extras preference, or (2)
+                    // there is >=1 overlapping element between the user's extras choices and the
+                    // menu coffee's extras options.
                     && (
                             dreamCoffeeNoExtrasPreference ||
-                            i.getExtrasSet().isEmpty() ||
                             !i.overlapExtrasSet(dreamCoffee).isEmpty()
                     )
             ) {
