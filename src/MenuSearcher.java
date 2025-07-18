@@ -58,8 +58,6 @@ public class MenuSearcher {
 
     //TODO*********REMEMBER TO SORT COFFEES DISPLAY ON MENU AND ORDERING MENU FROM LEAST EXPENSIVE to MOST EXPENSIVE->
     public static void mainMenuGui() {
-
-
         String menuDialogString =
                 "Welcome to the Java Bean Order Genie."
                         +"\nTake your time to search the menu for the coffee of your dreams."
@@ -71,30 +69,42 @@ public class MenuSearcher {
 
         String[] mainMenuOptions =
                 {"View the Full Menu", "Describe my Ideal Coffee", "View my Coffee Matches and Order"};
-        // Main Menu GUI
-        String menuChoice = (String) JOptionPane.showInputDialog(
-                null,
-                menuDialogString,
-                APP_NAME,
-                JOptionPane.QUESTION_MESSAGE,
-                icon,
-                mainMenuOptions,
-                "Describe my Ideal Coffee");
 
-        switch (menuChoice) {
-            case null -> {
-                System.out.println("Program exited successfully from Main Menu.");
-                System.exit(0);
-            }
-            case "View the Full Menu" -> showCoffeesMenu();
-            case "Describe my Ideal Coffee" -> {
-                dreamCoffee = getUserDreamCoffee();
-            }
-            case "View my Coffee Matches and Order" -> viewMatchesAndOrder(dreamCoffee);
-            // This default should never be reached in normal program flow.
-            default -> {
-                System.err.println("Unexpected value at main menu selection: " + menuChoice);
-                System.exit(1);
+
+        // switch loop because otherwise continuing the program after returning a value from a menu
+        // case would require extra manual handling. Idea from
+        // https://stackoverflow.com/questions/34928182/how-to-make-a-java-main-menu-loop-after-using-a-case
+        mainMenuLoop:
+        while (true) {
+            // Main Menu GUI
+            String menuChoice = (String) JOptionPane.showInputDialog(
+                    null,
+                    menuDialogString,
+                    APP_NAME,
+                    JOptionPane.QUESTION_MESSAGE,
+                    icon,
+                    mainMenuOptions,
+                    "Describe my Ideal Coffee");
+
+            switch (menuChoice) {
+                case null -> {
+                    System.out.println("Program exited successfully from Main Menu.");
+                    System.exit(0); //break loop unnecessary, since we're ending.
+                }
+                case "View the Full Menu" -> {
+                    showCoffeesMenu();
+                }
+                case "Describe my Ideal Coffee" -> {
+                    dreamCoffee = getUserDreamCoffee();
+                }
+                case "View my Coffee Matches and Order" -> {
+                    viewMatchesAndOrder(dreamCoffee);
+                }
+                // This default should never be reached in normal program flow.
+                default -> {
+                    System.err.println("Unexpected value at main menu selection: " + menuChoice);
+                    System.exit(1);
+                }
             }
         }
     }
@@ -281,6 +291,7 @@ public class MenuSearcher {
 
 
             //**********MILK**********
+
             Set<Milk> milkSet = new HashSet<>();
 
             // Remove all "[" at the start of the string, or "]" at the end of the string.
@@ -390,10 +401,8 @@ public class MenuSearcher {
                     extrasSet,
                     description);
 
-
             menu.addCoffee(coffee);
         }
-
         return menu;
     }
 
@@ -435,6 +444,7 @@ public class MenuSearcher {
     /**
      * Requests user input/selection of coffee features e.g.  type [hot coffee/frappe], milk
      * type (including a no-milk option), number of shots, sugar [Yes/No], price range, and extras),
+     * Calls a series of helper methods.
      *
      * Assignment and exception handling code adapted from COSC120 Tute 4 solutions 3_4,
      * FindADog.java getUserCriteria() method, ln167-243.
@@ -442,40 +452,12 @@ public class MenuSearcher {
      * @return dreamCoffee, a Coffee object representing the user's desired coffee attributes.
      */
     public static Coffee getUserDreamCoffee () {
-        //**********GET DRINK TYPE**********
-        DrinkType drinkType = (DrinkType) JOptionPane.showInputDialog(null,
-                "For starters, what sort of drink would you like? Hot Coffee or Frappe?",
-                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, DrinkType.values(), null);
-        if  (drinkType == null) mainMenuGui();
-
-        //**********GET MILK SET**********
-        // User only selects one milk--milk choices are usually exclusive preferences.
-        // IntelliJ prompted wrapping the assignment in Collections.singleton() to assign the Enum
-        // value to my desired Collection type. I did some digging and decided EnumSet.of() was a
-        // better option in case the program design changes to require muteability of the user's
-        // milk choices. Sources:
-        // https://www.geeksforgeeks.org/java/collections-singleton-method-java/ &
-        // https://www.geeksforgeeks.org/java/enumset-of-method-in-java/
-
-        Milk selectedMilk = (Milk) JOptionPane.showInputDialog(null,
-                "What sort of milk would you like?",
-                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Milk.values(), null);
-        if (selectedMilk == null) mainMenuGui();
-
-        //Necessary to send to Set as the Coffee parameters expect a Set.
-        Set<Milk> milkSet = EnumSet.of(selectedMilk);
-
-        //**********GET PRICE MIN**********
+        DrinkType drinkType = getDreamDrinkType();
+        Set<Milk> milkSet = getDreamMilkSet();
         // Declare priceMin in calling method to ensure priceMax>priceMin. -1 initialisation for looping.
         float priceMin = -1;
         priceMin = getDreamPriceMin(priceMin); // Assign to pre-initialised local float.
-
-
-
-        //**********GET PRICE MAX**********
         float priceMax = getDreamPriceMax(priceMin);
-
-
         Set<String> extrasSet = getDreamExtrasSet();
         Provenance provenance = getDreamProvenance();
         int numOfShots = getDreamNumOfShots();
@@ -502,23 +484,31 @@ public class MenuSearcher {
      * listed milk option (or no milk if it's milk-free).
      */
     public static Coffee viewMatchesAndOrder(Coffee dreamCoffee){
+//        String[] allCoffeesArray= allCoffeesArray(); // Build coffees string from helper method.
+        Object[] allCoffeesArray = allCoffeesNameAndId();
+
         // All coffees menu GUI with scrollbar.
         JTextArea textArea = new JTextArea(buildCoffeeMatchString(dreamCoffee)); //Call helper method to fill text.
         JScrollPane scrollPane = new JScrollPane(textArea);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         scrollPane.setPreferredSize(new Dimension(500,500 ) );
-        String selectedCoffeeNameAndId =
-                (String) JOptionPane.showInputDialog(null, scrollPane, APP_NAME,
+
+//        String selectedCoffeeNameAndId =
+//                (String) JOptionPane.showInputDialog(null, scrollPane, APP_NAME,
+        Coffee selectedCoffee =
+                (Coffee) JOptionPane.showInputDialog(null, scrollPane, APP_NAME,
                         JOptionPane.INFORMATION_MESSAGE, icon,
-                        // Direct call to helper method to build String[]
-                        allCoffeesArray(), null);
+                        allCoffeesArray, null);
+        if (selectedCoffee == null) {
+            mainMenuGui();
+        }
 
-        // Reverse the assignment of the coffee's ID to the selector string to retrieve it from the Menu's Map.
-        String[] selectedCoffeeStringArray = selectedCoffeeNameAndId.split(" ");
-        String selectedCoffeeID = selectedCoffeeStringArray[selectedCoffeeStringArray.length -1];
-
-        Coffee selectedCoffee = menu.getMenu().get(selectedCoffeeID);
+//        // Reverse the assignment of the coffee's ID to the selector string to retrieve it from the Menu's Map.
+//        String[] selectedCoffeeStringArray = selectedCoffeeNameAndId.split(" ");
+//        String selectedCoffeeID = selectedCoffeeStringArray[selectedCoffeeStringArray.length -1];
+//
+//        Coffee selectedCoffee = menu.getMenu().get(selectedCoffeeID);
 
         // Explicitly define parameters because milkSet comes from dreamCoffee and extrasSet is a
         // derived value of the exclusive intersection of dreamCoffee's and the Menu Coffee
@@ -791,29 +781,41 @@ public class MenuSearcher {
         return viewMatchesSB.toString();
     }
 
-    /**
-     * Create a String Array of all coffees. Helper method to tidy up viewMatchesAndOrder.
-     * Used to populate drop-down GUI selection list.
-     *
-     * Uses a foreach with external counter to simultaneously iterate through Array and Map.
-     * Idea from https://www.tutorialspoint.com/java-program-to-convert-collection-into-array
-     *
-     * Adds Ids after plain language names, as these are the unique identifiers and could
-     * potentially help people ordering if multiple coffees of the same plain language name exist.
-     *
-     * @return coffeeNamesAndID, a String[] with all coffees listed in the format "[name] - [menuItemId]"
-     */
-    public static String [] allCoffeesArray() {
-        String[] coffeeNamesAndId = new String[menu.getMenu().size()]; //Initiate with space for all menu coffees.
+//    /**
+//     * Create a String Array of all coffees. Helper method to tidy up viewMatchesAndOrder.
+//     * Used to populate drop-down GUI selection list.
+//     *
+//     * Uses a foreach with external counter to simultaneously iterate through Array and Map.
+//     * Idea from https://www.tutorialspoint.com/java-program-to-convert-collection-into-array
+//     *
+//     * Adds Ids after plain language names, as these are the unique identifiers and could
+//     * potentially help people ordering if multiple coffees of the same plain language name exist.
+//     *
+//     * @return coffeeNamesAndID, a String[] with all coffees listed in the format "[name] - [menuItemId]"
+//     */
+//    public static String [] allCoffeesArray() {
+//        String[] coffeeNamesAndId = new String[menu.getMenu().size()]; //Initiate with space for all menu coffees.
+//
+//        int coffeeNamesAndIdIndex = 0;
+//        for (Coffee coffee : menu.getMenu().values()) {
+//            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee.getMenuItemName() + " - " + coffee.getMenuItemId();
+//            coffeeNamesAndIdIndex++;
+//        }
+//        Arrays.sort(coffeeNamesAndId); // Present coffees in alphabetical order.
+//        return coffeeNamesAndId;
+//    }
+    public static Object[] allCoffeesNameAndId(){
+        Object[] coffeeNamesAndId = new Object[menu.getMenu().size()];
 
         int coffeeNamesAndIdIndex = 0;
         for (Coffee coffee : menu.getMenu().values()) {
-            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee.getMenuItemName() + " - " + coffee.getMenuItemId();
+            coffeeNamesAndId[coffeeNamesAndIdIndex] = coffee;
             coffeeNamesAndIdIndex++;
         }
         Arrays.sort(coffeeNamesAndId); // Present coffees in alphabetical order.
         return coffeeNamesAndId;
     }
+
 
     /**
      * Round String to 2 decimal places. Rounds up at halves. BigDecimal offers best precision for monetary calculations.
@@ -831,6 +833,40 @@ public class MenuSearcher {
     }
 
     //**************************************GET DREAMCOFFEE PREFERENCES HELPER METHODS************************************
+
+    /**
+     * Get user DrinkType preference via GUI.
+     * @return DrinkType Enum value ('hot coffee'/'frappe')
+     */
+    public static DrinkType getDreamDrinkType() {
+        DrinkType drinkType = (DrinkType) JOptionPane.showInputDialog(null,
+                "For starters, what sort of drink would you like? Hot Coffee or Frappe?",
+                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, DrinkType.values(), null);
+        if (drinkType == null) mainMenuGui();
+        return drinkType;
+    }
+    /**
+     * Get user milk choice via GUI.
+     * User only selects one milk--milk choices are usually exclusive preferences.
+     *
+     * IntelliJ prompted wrapping the assignment in Collections.singleton() to assign the Enum
+     * value to my desired Collection type. I did some digging and decided EnumSet.of() was a
+     * better option in case the program design changes to require muteability of the user's
+     * milk choices. Sources:
+     * https://www.geeksforgeeks.org/java/collections-singleton-method-java/ &
+     * https://www.geeksforgeeks.org/java/enumset-of-method-in-java/
+     * @return Set <Milk>, the user's milk choice.
+     * Set because Coffee parameters expect a Set, even though the Set only contains one value.
+     */
+    public static Set<Milk> getDreamMilkSet() {
+        Milk selectedMilk = (Milk) JOptionPane.showInputDialog(null,
+                "What sort of milk would you like?",
+                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Milk.values(), null);
+        if (selectedMilk == null) mainMenuGui();
+
+        Set<Milk> milkSet = EnumSet.of(selectedMilk);
+        return milkSet;
+    }
 
     /**
      * Gets user input minimum price for a coffee.
@@ -1003,6 +1039,7 @@ public class MenuSearcher {
                 "Terroir is important. What's the provenance of the beans you're after?",
                 APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Provenance.values(), null);
         if (provenance == null) mainMenuGui();
+        return provenance;
     }
     /**
      * Gets user input number of shots preference via GUI.

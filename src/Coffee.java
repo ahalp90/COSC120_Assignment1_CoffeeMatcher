@@ -79,6 +79,21 @@ public class Coffee {
         return overlapExtrasSet;
     }
 
+    /**
+     * Return a string representation of the Coffee in a format sensible for end users
+     * (since Coffees would otherwise return their custom Object hashcode identifier).
+     * Used to populate ordering menu object array.
+     *
+     * Override syntax from:
+     * https://www.geeksforgeeks.org/java/overriding-tostring-method-in-java/
+     *
+     * @return String in the format 'menuItemName + " - " + menuItemId'
+     */
+    @Override
+    public String toString(){
+        return menuItemName + " - " + menuItemId;
+    }
+
     //**********GETTERS**********
     // Filter out unneeded ones after.
     public String getMenuItemId() {
