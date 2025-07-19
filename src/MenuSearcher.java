@@ -50,7 +50,7 @@ public class MenuSearcher {
         if (icon.getImageLoadStatus() == MediaTracker.ERRORED
                 || icon.getImageLoadStatus() == MediaTracker.ABORTED) {
             System.err.println("Error: The icon image failed to load. Check that the image is in the path "
-            + ICON_PATH + " and that you have permission to access this path.");
+                    + ICON_PATH + " and that you have permission to access this path.");
         }
 
         mainMenuGui();
@@ -60,15 +60,16 @@ public class MenuSearcher {
     public static void mainMenuGui() {
         String menuDialogString =
                 "Welcome to the Java Bean Order Genie."
-                        +"\nTake your time to search the menu for the coffee of your dreams."
-                        +"\nUse the drop down menu to start making your order or explore our menu."
-                        +"\n\nYou can use our custom coffee matcher to describe your ideal coffee, "
-                        +"and then view your matching coffees before ordering."
-                        +"\nIf haven't described your ideal coffee but still want to order, that's okay."
-                        +"\nGo ahead and click 'View my Coffee Matches and Order' anyway.";
+                        + "\nTake your time to search the menu for the coffee of your dreams."
+                        + "\nUse the drop down menu to start making your order or explore our menu."
+                        + "\n\nYou can use our custom coffee matcher to describe your ideal coffee, "
+                        + "and then view your matching coffees before ordering."
+                        + "\nIf haven't described your ideal coffee but still want to order, that's okay."
+                        + "\nGo ahead and click 'View my Coffee Matches and Order' anyway.";
 
         String[] mainMenuOptions =
-                {"View the Full Menu", "Describe my Ideal Coffee", "View my Coffee Matches and Order"};
+                {"View the Full Menu", "Describe my Ideal Coffee", "View my Coffee Matches and Order",
+                        "Order Any Item Off the Menu"};
 
 
         // switch loop because otherwise continuing the program after returning a value from a menu
@@ -98,18 +99,10 @@ public class MenuSearcher {
                     dreamCoffee = getUserDreamCoffee();
                 }
                 case "View my Coffee Matches and Order" -> {
-                    //TODO REMOVE TEST CODE***********************************************************************************************
-                    System.out.println("\n\nCoffee you're about to use to match is:");
-                    System.out.println(dreamCoffee.hashCode());
-                    for (Milk m : dreamCoffee.getMilkSet())System.out.println(m);
-                    System.out.println(dreamCoffee.getDrinkType());
-                    for (String s : dreamCoffee.getExtrasSet())System.out.println(s);
-                    System.out.println(dreamCoffee.getNumOfShots());
-                    System.out.println(dreamCoffee.getSugar() ? "yes" : "no");
-                    System.out.println("min"+dreamCoffee.getPriceMin()+" max"+dreamCoffee.getPriceMax());
-                    System.out.println(dreamCoffee.getProvenance());
-
-                    viewMatchesAndOrder(dreamCoffee);
+                    if (dreamCoffee != null) viewMatchesAndOrder(dreamCoffee);
+                }
+                case "Order Any Item Off the Menu" -> {
+                    dreamCoffee = orderAnyCoffeeParent();
                 }
                 // This default should never be reached in normal program flow.
                 default -> {
@@ -130,7 +123,7 @@ public class MenuSearcher {
      * provenance, milkSet, extrasSet and description.
      * Failure to provide any of these values for a coffee,
      * other than a description, will result in the coffee not being added to the app's active menu.
-     *
+     * <p>
      * Ideas adapted from COSC120 Tute 4 solutions 3_4, FindADog.java,loadDogs() method at ln 249-293.
      *
      * @return a Menu object, which is a collection of coffee objects.
@@ -177,7 +170,7 @@ public class MenuSearcher {
         Pattern patternSqBracketsAroundString = Pattern.compile("^\\[|\\]$");
 
 
-        for (int i=1;i<fileContents.size();i++) {
+        for (int i = 1; i < fileContents.size(); i++) {
             // Split menu item line into individual array elements.
             // pattern.split() idea from https://www.geeksforgeeks.org/java/java-split-string-using-regex/
             String[] elements =
@@ -419,10 +412,10 @@ public class MenuSearcher {
 
     /**
      * Show a menu of all available coffees.
-     *
+     * <p>
      * Build String of the coffees' details. Calls on helper Coffee.coffeeDetailsString()
      * and then formats as relevant. Display these in coffee menu GUI
-     *
+     * <p>
      * JTextArea and JScrollPane code adapted from GETah's response of Dec 4, 2011 at:
      * https://stackoverflow.com/questions/8375022/joptionpane-and-scroll-function
      * This code creates a JTextArea, assigns its text to the value of the string built using
@@ -437,7 +430,7 @@ public class MenuSearcher {
         allCoffeesStringBuilder.append("**********Java Bean Coffee Menu - All Coffees**********\n");
         for (Coffee coffee : menu.getMenu().values()) {
             allCoffeesStringBuilder.append("\n").append(coffee.coffeeDetailsString())
-            .append("\n").append("\t**********");
+                    .append("\n").append("\t**********");
         }
 
         // All coffees menu GUI with scrollbar.
@@ -445,24 +438,25 @@ public class MenuSearcher {
         JScrollPane scrollPane = new JScrollPane(textArea);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
-        scrollPane.setPreferredSize(new Dimension(500,500 ) );
-        int guiClosedCheck = JOptionPane.showOptionDialog(null, scrollPane, APP_NAME,JOptionPane.DEFAULT_OPTION,
+        scrollPane.setPreferredSize(new Dimension(500, 500));
+        int guiClosedCheck = JOptionPane.showOptionDialog(null, scrollPane, APP_NAME, JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE, icon, null, null);
 
         // -1 is close menu button, 0 is 'ok' button.
         if (guiClosedCheck == -1 || guiClosedCheck == 0) mainMenuGui();
     }
+
     /**
      * Requests user input/selection of coffee features e.g.  type [hot coffee/frappe], milk
      * type (including a no-milk option), number of shots, sugar [Yes/No], price range, and extras),
      * Calls a series of helper methods.
-     *
+     * <p>
      * Assignment and exception handling code adapted from COSC120 Tute 4 solutions 3_4,
      * FindADog.java getUserCriteria() method, ln167-243.
      *
      * @return dreamCoffee, a Coffee object representing the user's desired coffee attributes.
      */
-    public static Coffee getUserDreamCoffee () {
+    public static Coffee getUserDreamCoffee() {
         DrinkType drinkType = getDreamDrinkType();
         Set<Milk> milkSet = getDreamMilkSet();
         // Declare priceMin in calling method to ensure priceMax>priceMin. -1 initialisation for looping.
@@ -474,19 +468,19 @@ public class MenuSearcher {
         int numOfShots = getDreamNumOfShots();
         boolean sugar = getDreamSugar();
 
-        Coffee dreamCoffee = new Coffee("","",-1, numOfShots, sugar, drinkType, provenance, milkSet, extrasSet, "");
+        Coffee dreamCoffee = new Coffee("", "", -1, numOfShots, sugar, drinkType, provenance, milkSet, extrasSet, "");
         dreamCoffee.setPriceMin(priceMin);
         dreamCoffee.setPriceMax(priceMax);
 
         //TODO REMOVE TEST CODE***********************************************************************************************
         System.out.println("\n\nCoffee you've just entered is is:");
         System.out.println(dreamCoffee.hashCode());
-        for (Milk m : dreamCoffee.getMilkSet())System.out.println(m);
+        for (Milk m : dreamCoffee.getMilkSet()) System.out.println(m);
         System.out.println(dreamCoffee.getDrinkType());
-        for (String s : dreamCoffee.getExtrasSet())System.out.println(s);
+        for (String s : dreamCoffee.getExtrasSet()) System.out.println(s);
         System.out.println(dreamCoffee.getNumOfShots());
         System.out.println(dreamCoffee.getSugar() ? "yes" : "no");
-        System.out.println("min"+dreamCoffee.getPriceMin()+" max"+dreamCoffee.getPriceMax());
+        System.out.println("min" + dreamCoffee.getPriceMin() + " max" + dreamCoffee.getPriceMax());
         System.out.println(dreamCoffee.getProvenance());
         return dreamCoffee;
     }
@@ -494,8 +488,10 @@ public class MenuSearcher {
 //TODO FINISH THIS JAVADOC
 //TODO FIX ASSIGNMENT OF EXTRAS AND MILK FOR NON-DREAM COFFEE
 //TODO IMPROVE SELECTION OF DREAM COFFEES ? PUT THEM FIRST IN ARRAY LIST AND DEFAULT TO FIRST MATCH COFFEE CHOICE?
+
     /**
      * GUI for viewing coffee matches and selecting a coffee to order.
+     *
      * @param dreamCoffee Coffee passed on to helper method buildCoffeeMatchString() for
      *                    deriving String of user-matched coffees' details.
      * @return the Coffee ordered by the customer. Returns either a coffee with
@@ -505,7 +501,7 @@ public class MenuSearcher {
      * (3) in the case of no match, the selected coffee with no extras and the coffee's first
      * listed milk option (or no milk if it's milk-free).
      */
-    public static Coffee viewMatchesAndOrder(Coffee dreamCoffee){
+    public static Coffee viewMatchesAndOrder(Coffee dreamCoffee) {
         Coffee[] coffeeNamesAndId = allCoffeesNameAndId(); // Build drop-down list of coffees array from helper method.
         //Call helper method to fill text of matched coffees.
         String coffeeMatcherText = buildCoffeeMatchString(dreamCoffee);
@@ -515,7 +511,7 @@ public class MenuSearcher {
         JScrollPane scrollPane = new JScrollPane(textArea);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
-        scrollPane.setPreferredSize(new Dimension(500,500 ) );
+        scrollPane.setPreferredSize(new Dimension(500, 500));
 
 
         Coffee selectedCoffee =
@@ -551,13 +547,13 @@ public class MenuSearcher {
 
     /**
      * Obtain the user's info via GUI.
-     *
+     * <p>
      * Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln82-160. Regex patterns found therein.
      * However,regex Pattern compilations moved to this calling method to avoid recompilation in helpers at each loop.
      *
      * @return geekOrdering, a Geek record with the user's name, email and phone number.
      */
-    public static Geek getUserInfo(){
+    public static Geek getUserInfo() {
         //**********GET USER NAME**********
         // A regex pattern to check that the input is two words, separated by a space. Word1 Letter1
         // uppercase and following letters lowercase. Word2 must begin with an uppercase, though
@@ -568,15 +564,15 @@ public class MenuSearcher {
         do {
             fullName = (String) JOptionPane.showInputDialog(null,
                     "Please enter your first and last names."
-                            +"\nThe first letter of each name must be capitalised."
-                            +"\nInput letters only, separating your names by a space."
-                            +"\nEg. MaryJane Parker",
+                            + "\nThe first letter of each name must be capitalised."
+                            + "\nInput letters only, separating your names by a space."
+                            + "\nEg. MaryJane Parker",
                     APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
             if (fullName == null) {
                 mainMenuGui();
                 break; //End loop because exiting to different GUI method.
             }
-        } while(!matchValidInputString(fullNamePattern, fullName));
+        } while (!matchValidInputString(fullNamePattern, fullName));
 
         //**********GET USER EMAIL**********
         // A regex pattern to check that the email complies with RFC 5322.
@@ -591,7 +587,7 @@ public class MenuSearcher {
                 mainMenuGui();
                 break; //End loop because exiting to different GUI method.
             }
-        } while(!matchValidInputString(emailPattern, email));
+        } while (!matchValidInputString(emailPattern, email));
 
         //**********GET USER PHONE NUMBER**********
         // A regex pattern to check that phone numbers start with a 0 and are followed by 9 digits.
@@ -607,7 +603,7 @@ public class MenuSearcher {
                 mainMenuGui();
                 break; //End loop because exiting to different GUI method.
             }
-        } while(!matchValidInputString(phonePattern, phoneNoInput));
+        } while (!matchValidInputString(phonePattern, phoneNoInput));
         long phoneNo = Long.parseLong(phoneNoInput);
 
         Geek geekOrdering = new Geek(fullName, email, phoneNo);
@@ -616,13 +612,14 @@ public class MenuSearcher {
 
     /**
      * Populate an Order record with all attribute values relevant to customer order
-     * @param geekOrdering Geek record containing the customer's personal details.
+     *
+     * @param geekOrdering                     Geek record containing the customer's personal details.
      * @param selectedCoffeeWithCustomisations Coffee instance containing the attributes
      *                                         of the customer's desired coffee.
      * @return customerOrder, an Order record instance with the relevant attribute values for
      * writing the order to file.
      */
-    public static Order createCustomerOrderRecord (Geek geekOrdering, Coffee selectedCoffeeWithCustomisations){
+    public static Order createCustomerOrderRecord(Geek geekOrdering, Coffee selectedCoffeeWithCustomisations) {
         Order customerOrder = new Order(
                 geekOrdering.name(),
                 geekOrdering.phoneNo(),
@@ -643,26 +640,27 @@ public class MenuSearcher {
      * Create customer order text file saved to system.
      * Check directory access, allocate an unused filename and write the file to the directory.
      * Calls a helper method to build the order String.
-     *
+     * <p>
      * Uses ideas adapted from several sources:
      * File existence check code from: https://www.baeldung.com/java-file-directory-exists .
      * isWritable() method idea from:
      * https://www.geeksforgeeks.org/java/files-iswritable-method-in-java-with-examples/
      * Files.writeString() method idea from Roberto's answer of Feb 24 2014:
      * https://stackoverflow.com/questions/7366266/best-way-to-write-string-to-file-using-java-nio
+     *
      * @param customerOrder the record holding all attribute values relevant to the order.
      * @return orderString contents of the order txt. Can be displayed to user in following GUI.
      */
-    public static String writeCustomerOrderToTxt (Order customerOrder){
+    public static String writeCustomerOrderToTxt(Order customerOrder) {
         // Check write permissions for directory. "./" must exist because it's the program's root
         // directory, but if the write out path was moved then there should also be a dir.exists()
         // check.
         Path writeOutDir = Paths.get("./");
-        if (!Files.isWritable(writeOutDir)){
+        if (!Files.isWritable(writeOutDir)) {
             System.err.println("Error: File " + writeOutDir + " is not writable.");
             JOptionPane.showMessageDialog(null,
                     "Error: Your order could not be written to the system.The program will exit when "
-                            +"you exit this dialogue box.",
+                            + "you exit this dialogue box.",
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
@@ -683,14 +681,14 @@ public class MenuSearcher {
 
         if (requestNo == maxRequestsNo) {
             System.err.println("When attempting to write order to output text, maxRequestsNo was "
-                    +"exceeded for the user's phone number of "+customerOrder.phoneNo()+".");
+                    + "exceeded for the user's phone number of " + customerOrder.phoneNo() + ".");
             JOptionPane.showMessageDialog(null,
-                    "Error: It looks like you've ordered you've ordered "+maxRequestsNo
-                            +" coffees with this phone number.\n"
-                            +"You're amazing, but our ordering system is not built to handle this level of devotion."
-                            +"\n\nPlease go speak with management to claim a prize if this is the case."
-                            +"\nYou can still order off a different phone number while we wait for our "
-                            +"dev team to fix this for you.",
+                    "Error: It looks like you've ordered you've ordered " + maxRequestsNo
+                            + " coffees with this phone number.\n"
+                            + "You're amazing, but our ordering system is not built to handle this level of devotion."
+                            + "\n\nPlease go speak with management to claim a prize if this is the case."
+                            + "\nYou can still order off a different phone number while we wait for our "
+                            + "dev team to fix this for you.",
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
@@ -706,18 +704,20 @@ public class MenuSearcher {
             System.err.println("Error writing output file: " + fullOutputPath + "\n" + e.getMessage());
             JOptionPane.showMessageDialog(null,
                     "Error: Your order could not be saved to our system. We're really sorry!"
-                            +"\nYou're welcome to try again, or else go order at the front counter.",
+                            + "\nYou're welcome to try again, or else go order at the front counter.",
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
             mainMenuGui();
         }
         System.out.println("Order has been saved to " + fullOutputPath + "\n");
         return orderString; // Returns orderString, which can be displayed in success GUI window.
     }
+
     /**
      * Capitalise the first letter of each word in a string, and make other letters lowercase.
-     *
+     * <p>
      * Adapted with minor modification from this tutorial:
      * https://www.geeksforgeeks.org/java/java-program-to-capitalize-the-first-letter-of-each-word-in-a-string/
+     *
      * @param input the String to be modified.
      * @return the String in the desired (capitalised[0]lowercase[1:]) format.
      */
@@ -742,7 +742,7 @@ public class MenuSearcher {
 
     /**
      * A regex matcher that ensures that the user's entry matches the provided regex pattern.
-     *
+     * <p>
      * Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln126-160.
      * Patterns compilations moved to calling method to avoid recompilation at each loop.
      *
@@ -756,6 +756,7 @@ public class MenuSearcher {
 
     /**
      * Helper method to create a String formatted to meet the order details txt requirements.
+     *
      * @param customerOrder record containing all attribute values necessary to record an order.
      * @return a String of the customer's order.
      */
@@ -770,7 +771,7 @@ public class MenuSearcher {
         sb.append("\tMilk: ").append(customerOrder.milk()).append("\n");
         sb.append("\tExtras: ").append(customerOrder.extrasSet());
 
-        return  sb.toString();
+        return sb.toString();
     }
 
     /**
@@ -788,7 +789,8 @@ public class MenuSearcher {
         viewMatchesSB.append("**********Java Bean Coffee Matcher and Ordering System**********\n\n");
         if (matches.isEmpty()) {
             viewMatchesSB.append("No matching coffee found.\n\n"
-                    + "But feel free to order anything you like off the drop-down menu below.");
+                    + "But feel free to order any menu coffee you like."
+                    +"\nJust exit this window to return to the main menu.");
         } else {
             viewMatchesSB.append("Congratulations, you've matched!")
                     .append("\nYour coffee matches are shown below.")
@@ -806,10 +808,10 @@ public class MenuSearcher {
     /**
      * Create a Coffee Array of all coffees. Helper method for viewMatchesAndOrder().
      * Used to populate drop-down GUI selection Array.
-     *
+     * <p>
      * Uses an array of custom objects with custom toString representation invoked on Coffee class.
      * Idea from: https://stackoverflow.com/questions/4078714/swing-selecting-among-a-set-of-objects
-     *
+     * <p>
      * Adds Ids after plain language names, as these are the unique identifiers and could
      * potentially help people ordering if multiple coffees of the same plain language name exist.
      *
@@ -817,7 +819,7 @@ public class MenuSearcher {
      * format "[name] - [menuItemId]"
      */
 
-    public static Coffee[] allCoffeesNameAndId(){
+    public static Coffee[] allCoffeesNameAndId() {
         // toArray() with type specification and right-sized array per
         // https://stackoverflow.com/questions/28392705/difference-between-toarrayt-a-and-toarray?rq=3 and
         // https://stackoverflow.com/questions/174093/toarraynew-myclass0-or-toarraynew-myclassmylist-size?noredirect=1&lq=1
@@ -836,7 +838,7 @@ public class MenuSearcher {
     /**
      * Round String to 2 decimal places. Rounds up at halves. BigDecimal offers best precision for monetary calculations.
      * User might input a figure with many decimal places, but standard commercial transactions are in 2f.
-     *
+     * <p>
      * Idea inspired from discussion at
      * https://stackoverflow.com/questions/153724/how-to-round-a-number-to-n-decimal-places-in-java and
      * https://www.baeldung.com/java-bigdecimal-biginteger
@@ -844,8 +846,138 @@ public class MenuSearcher {
      * @param value a String of digits with, optionally, a point to indicate a decimal
      * @return a float of the input string, rounded to 2f.
      */
-    public static float roundStringTo2fFloat (String value){
+    public static float roundStringTo2fFloat(String value) {
         return new BigDecimal(value).setScale(2, BigDecimal.ROUND_HALF_UP).floatValue();
+    }
+
+    public static Coffee orderAnyCoffeeParent(){
+        Coffee selectedCoffee = orderAnyCoffeeSelectCoffee();
+        //Attribute selection only reached if a coffee is selected in the preceding method call
+        Coffee selectedCoffeeWithAttributes = orderAnyCoffeeSelectAttributes(selectedCoffee);
+        return selectedCoffeeWithAttributes;
+    }
+     public static Coffee orderAnyCoffeeSelectCoffee() {
+        //TODO ENSURE ANY POSSIBLE CONFLICTING COFFEE OBJECTS TO PASS TO ORDER ARE OVERWRITTEN AS NULL********************************
+//        if (geekOrdering != null) geekOrder = null;
+//        if (selectedCoffeeWithCustomisations != null) selectedCoffeeWithCustomisations = null;
+
+         // Coffee selector pane
+         String paneInstruction =
+                 "Just want to order a coffee without matching?"
+                 + "\n\nSelect your coffee type, then select its milk and extras in the next menu.";
+         Coffee[] allCoffeesNameAndId = allCoffeesNameAndId();
+         // Default choice first coffee on the list; changing this condition would oblige a state
+         // check when populating attribute drop-down panels.
+         Coffee selectedCoffee =
+                 (Coffee) JOptionPane.showInputDialog(null, paneInstruction, APP_NAME, JOptionPane.OK_CANCEL_OPTION,
+                         icon, allCoffeesNameAndId, allCoffeesNameAndId[0]);
+         if (selectedCoffee==null) mainMenuGui();
+         return selectedCoffee;
+     }
+    public static Coffee orderAnyCoffeeSelectAttributes(Coffee selectedCoffee){
+        String paneInstruction =
+                "Pick the extra(s) you'd like, your coffee's milk option, and then proceed to order.";
+
+        // Populate selected coffee extras set Array
+        Set<String> selectedCoffeeExtrasSet = new TreeSet<>(selectedCoffee.getExtrasSet());
+        String[] selectedCoffeeExtrasArray = selectedCoffeeExtrasSet.toArray(new String[0]);
+        JComboBox<String> extrasDropDown = new JComboBox<>(selectedCoffeeExtrasArray);
+
+        // Populate selected coffee milk set Array
+        Set<Milk> selectedCoffeeMilkSet = new TreeSet<>(selectedCoffee.getMilkSet());
+        Milk[] selectedCoffeeMilkArray = selectedCoffeeMilkSet.toArray(new Milk[0]);
+        JComboBox<Milk> milksDropDown = new JComboBox<>(selectedCoffeeMilkArray);
+
+
+        String[] attributeSelectorButtons =
+                {"Add Selected Extra", "Skip Adding Extras\n(clear any chosen extras)", "Select Milk",
+                        "Order With These Selections", "Pick a different coffee"};
+
+        Object[] attributesMessageAndDropDown = {paneInstruction, extrasDropDown, milksDropDown};
+
+        Set<String> extrasSet = new HashSet<>(); // Hold all user extras choices.
+        String extraToAddToSet; // Container for individual extra selections.
+        Set<Milk> milkSet; // User milk choice.
+        Milk selectedMilk; //Necessary intermediate var because Coffee milks are sets.
+
+        Coffee selectedCoffeeWithAttributes = null; // Initialise Coffee to create and return
+
+        attributesLoop:
+        while (true) {
+            int buttonChoice = JOptionPane.showOptionDialog(null,
+                    attributesMessageAndDropDown,
+                    APP_NAME, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, icon, attributeSelectorButtons, null);
+            extraToAddToSet = (String) extrasDropDown.getSelectedItem();
+            selectedMilk = (Milk) milksDropDown.getSelectedItem();
+            milkSet = EnumSet.of(selectedMilk);
+
+            // Switch on button choice (showOptionDialog returns int).
+            switch (buttonChoice) {
+                // User closed window.
+                case -1 -> {
+                    mainMenuGui(); // Go to main menu.
+                    break attributesLoop; //End loop because exiting to different GUI method.
+                }
+                //Attempt to add selected extra, either notifying that the element has already been
+                //added, or adding it to the user's Set.
+                case 0 -> {
+                    if (extrasSet.contains(extraToAddToSet)) {
+                        JOptionPane.showMessageDialog(null,
+                                "You've already selected that extra. Your selected extras include: "
+                                        + String.join(", ", extrasSet)
+                                        + "\nPlease select another extra, or click 'Finished Adding Extras'"
+                                        + " to move to the next screen.",
+                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, icon);
+                    } else {
+                        extrasSet.add(extraToAddToSet);
+                    }
+                }
+                // User skips adding extras--ensure their extras set is cleared.
+                case 1 -> {
+                    extrasSet.clear();
+                }
+                case 2 -> {
+                    //This doesn't actually do anything, but it would be confusing to UI if they
+                    //had to click to add extras but not to add milk. The milk allocation could
+                    //be moved here from the start of the loop if desired; it just seems more
+                    //fool-proof that if a user clicked a milk, it's automatically added.
+                    continue;
+                }
+                case 3 -> {
+                    if (milkSet.isEmpty()){
+                        JOptionPane.showMessageDialog(null,
+                                "You've tried to finish this selection without selecting your milk."
+                                        +"\nAll coffees need a milk choice, even if it's 'None'",
+                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, icon);
+                    } else {
+                        selectedCoffeeWithAttributes = new Coffee(
+                                selectedCoffee.getMenuItemId(),
+                                selectedCoffee.getMenuItemName(),
+                                selectedCoffee.getPrice(),
+                                selectedCoffee.getNumOfShots(),
+                                selectedCoffee.getSugar(),
+                                selectedCoffee.getDrinkType(),
+                                selectedCoffee.getProvenance(),
+                                milkSet,
+                                extrasSet,
+                                selectedCoffee.getDescription());
+                        break attributesLoop;
+                    }
+                }
+                case 4 -> {
+                    // Restart menu coffee selection process. Ensure all values cleared and loop broken.
+                    extrasSet.clear();
+                    milkSet.clear();
+                    orderAnyCoffeeParent();
+                    break attributesLoop;
+                }
+            }
+        }
+        if (selectedCoffeeWithAttributes != null) {
+            return selectedCoffeeWithAttributes;
+        } else {
+            return null;
+        }
     }
 
     //**************************************GET DREAMCOFFEE PREFERENCES HELPER METHODS************************************
@@ -861,6 +993,7 @@ public class MenuSearcher {
         if (drinkType == null) mainMenuGui();
         return drinkType;
     }
+
     /**
      * Get user milk choice via GUI.
      * User only selects one milk--milk choices are usually exclusive preferences.
@@ -959,6 +1092,7 @@ public class MenuSearcher {
         } while (priceMax < priceMin);
         return priceMax;
     }
+
     /**
      * Gets user input to compose their set of desired extras.
      * GUI with drop-down menu of alphabetically sorted extras derived from all menu extras, and custom buttons.
@@ -1057,6 +1191,7 @@ public class MenuSearcher {
         if (provenance == null) mainMenuGui();
         return provenance;
     }
+
     /**
      * Gets user input number of shots preference via GUI.
      * @return int numOfShots
@@ -1099,6 +1234,7 @@ public class MenuSearcher {
         } while (numOfShots < 0);         // Allow 0 min shots in case non-caffeinated drinks are sold.
         return numOfShots;
     }
+
     /**
      * Gets user input sugar preference ('Yes'/'No') via GUI.
      * @return boolean value of sugar preference.
@@ -1113,4 +1249,16 @@ public class MenuSearcher {
         return sugar;
     }
 
+    public static void testDreamCoffeeCreation(){
+        System.out.println("\n\nCoffee you're about to use to match is:");
+        System.out.println(dreamCoffee.hashCode());
+        for (Milk m : dreamCoffee.getMilkSet()) System.out.println(m);
+        System.out.println(dreamCoffee.getDrinkType());
+        for (String s : dreamCoffee.getExtrasSet()) System.out.println(s);
+        System.out.println(dreamCoffee.getNumOfShots());
+        System.out.println(dreamCoffee.getSugar() ? "yes" : "no");
+        System.out.println("min" + dreamCoffee.getPriceMin() + " max" + dreamCoffee.getPriceMax());
+        System.out.println(dreamCoffee.getProvenance());
+
+    }
 }
