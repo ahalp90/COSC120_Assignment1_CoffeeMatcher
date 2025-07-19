@@ -90,7 +90,7 @@ public class Menu {
         for (Coffee i : this.menu.values()) {
             allMenuExtras.addAll(i.getExtrasSet());
         }
-        return allMenuExtras;
+        return Set.copyOf(allMenuExtras);
     }
 
     /**
@@ -98,7 +98,7 @@ public class Menu {
      * @return the Map menu.
      */
     public Map<String, Coffee> getMenu() {
-        return menu;
+        return new HashMap<>(this.menu);
     }
 
 }

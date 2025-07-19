@@ -76,7 +76,7 @@ public class Coffee {
         // Allocate dream coffee extras strings to a disposable set.
         Set<String> overlapExtrasSet = new HashSet<>(comparisonCoffee.getExtrasSet());
         overlapExtrasSet.retainAll(this.getExtrasSet());
-        return overlapExtrasSet;
+        return Set.copyOf(overlapExtrasSet);
     }
 
     /**
@@ -125,11 +125,11 @@ public class Coffee {
     }
 
     public Set<Milk> getMilkSet() {
-        return milkSet;
+        return new HashSet<>(this.milkSet);
     }
 
     public Set<String> getExtrasSet() {
-        return extrasSet;
+        return new HashSet<String>(this.extrasSet);
     }
 
     public String getDescription() {

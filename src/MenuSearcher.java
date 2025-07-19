@@ -19,19 +19,19 @@ public class MenuSearcher {
     private final static String MENU_FILE_PATH = "./menu.txt";
     private final static String ICON_PATH = "./java_bean.jpg";
     // TODO: not final. Do I make the class methods instance to allow this (and other changes)?
-    private static ImageIcon icon;
+    private static final ImageIcon icon = loadIcon();
     // Store drinks menu as a field so that it's accessible class-wide; use it as a parameter for
     // GUI menus allowing return to the main menu, without needing to repeatedly explicitly pass the
     // object reference.
-    private static Menu menu;
+    // Initialise it directly with loadMenuItems() to make it final.
+    private static final Menu menu = loadMenuItems();
     //Initialise coffee to support passing as parameter in mainMenuGui switches.
     private static Coffee dreamCoffee;
 
 
     //**********MAIN METHOD**********
     public static void main(String args[]) {
-        menu = loadMenuItems();
-        // Handle the exceptions that (1) the Menu has no values, or (2) the Menu loaded as an empty
+        // Handle the exceptions that (1) the Menu menu has no values, or (2) the Menu menu loaded empty
         // set; error-checking through loadMenuItems() suggests this would be because the provided
         // menu.txt contained no coffees below the header line.
         if (MenuSearcher.menu == null || MenuSearcher.menu.getMenu().isEmpty()) {
@@ -40,29 +40,18 @@ public class MenuSearcher {
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
-        // Load image to icon for use in GUIs.
-        icon = new ImageIcon(ICON_PATH);
-        // Error check ImageIcon load idea from reading the documentation:
-        // https://docs.oracle.com/en/java/javase/24/docs/api/java.desktop/javax/swing/ImageIcon.html#getImageLoadStatus()
-        // Discussion on StackOverflow indicates that ImageIcon's failure to load from file will not cause a
-        // fatal error--it will just produce a blank placeholder box. StackOverflow source:
-        // https://stackoverflow.com/questions/77634130/i-cant-get-the-imageicon-to-display-properly
-        if (icon.getImageLoadStatus() == MediaTracker.ERRORED
-                || icon.getImageLoadStatus() == MediaTracker.ABORTED) {
-            System.err.println("Error: The icon image failed to load. Check that the image is in the path "
-                    + ICON_PATH + " and that you have permission to access this path.");
-        }
+
 
         mainMenuGui();
     }
 
     //TODO*************************REMEMBER TO SORT COFFEES DISPLAY ON MENU AND ORDERING MENU FROM LEAST EXPENSIVE to MOST EXPENSIVE->
-    public static void mainMenuGui() {
+    private static void mainMenuGui() {
         String menuDialogString =
                 "Welcome to the Java Bean Order Genie."
                         + "\n\nUse the drop down menu to start making your order or explore our menu."
                         + "\n\nYou can use our custom coffee matcher to describe your ideal coffee, "
-                        + "and then 'View my Coffee Matches and Order'."
+                        + "and then 'View my Coffee Matches and Order' to order."
                         + "\n\nIf haven't described your ideal coffee but still want to order, that's okay."
                         + "\nJust go ahead and click 'Order Any Item Off the Menu";
 
@@ -98,10 +87,12 @@ public class MenuSearcher {
                     dreamCoffee = getUserDreamCoffee();
                 }
                 case "View my Coffee Matches and Order" -> {
-                    if (dreamCoffee != null) viewMatchesAndOrder(dreamCoffee);
-                    String orderOutString = createGeekAndOrderParent();
-                    showCustomerOrder(orderOutString);
-
+                    if (dreamCoffee != null) {
+                        //update dreamCoffee to take the attributes of the returned coffeeToOrder
+                        dreamCoffee = viewMatchesAndOrder(dreamCoffee);
+                        String orderOutString = createGeekAndOrderParent();
+                        showCustomerOrder(orderOutString);
+                    }
                 }
                 case "Order Any Item Off the Menu" -> {
                     dreamCoffee = orderAnyCoffeeParent();
@@ -134,7 +125,7 @@ public class MenuSearcher {
      *
      * @return a Menu object, which is a collection of coffee objects.
      */
-    public static Menu loadMenuItems() {
+    private static Menu loadMenuItems() {
         // Create Menu (with Map field) to hold coffees.
         Menu menu = new Menu();
 
@@ -418,10 +409,10 @@ public class MenuSearcher {
 
     /**
      * Show a menu of all available coffees.
-     *
+     * <p>
      * Build String of the coffees' details. Calls on helper Coffee.coffeeDetailsString()
      * and then formats as relevant. Display these in coffee menu GUI
-     *
+     *<p>
      * JTextArea and JScrollPane code adapted from GETah's response of Dec 4, 2011 at:
      * https://stackoverflow.com/questions/8375022/joptionpane-and-scroll-function
      * This code creates a JTextArea, assigns its text to the value of the string built using
@@ -430,7 +421,7 @@ public class MenuSearcher {
      * Finally, it presents JOptionPane nested with the contents of the JScrollPane
      * (which itself nests the JTextArea's contents).
      */
-    public static void showCoffeesMenu() {
+    private static void showCoffeesMenu() {
         // String - all coffee descriptions, line and asterisk-line separated.
         StringBuilder allCoffeesStringBuilder = new StringBuilder();
         allCoffeesStringBuilder.append("**********Java Bean Coffee Menu - All Coffees**********\n");
@@ -465,7 +456,7 @@ public class MenuSearcher {
      *
      * @return dreamCoffee, a Coffee object representing the user's desired coffee attributes.
      */
-    public static Coffee getUserDreamCoffee() {
+    private static Coffee getUserDreamCoffee() {
         DrinkType drinkType = getDreamDrinkType();
         Set<Milk> milkSet = getDreamMilkSet();
         // Declare priceMin in calling method to ensure priceMax>priceMin. -1 initialisation for looping.
@@ -483,16 +474,6 @@ public class MenuSearcher {
         dreamCoffee.setPriceMin(priceMin);
         dreamCoffee.setPriceMax(priceMax);
 
-        //TODO REMOVE TEST CODE***********************************************************************************************
-        System.out.println("\n\nCoffee you've just entered is is:");
-        System.out.println(dreamCoffee.hashCode());
-        for (Milk m : dreamCoffee.getMilkSet()) System.out.println(m);
-        System.out.println(dreamCoffee.getDrinkType());
-        for (String s : dreamCoffee.getExtrasSet()) System.out.println(s);
-        System.out.println(dreamCoffee.getNumOfShots());
-        System.out.println(dreamCoffee.getSugar() ? "yes" : "no");
-        System.out.println("min" + dreamCoffee.getPriceMin() + " max" + dreamCoffee.getPriceMax());
-        System.out.println(dreamCoffee.getProvenance());
         return dreamCoffee;
     }
 
@@ -511,7 +492,7 @@ public class MenuSearcher {
      * (2) the intersection of the menu coffee's extras and the customer's indicated extras preferences
      * (no preference = accept all menu extras)
      */
-    public static Coffee viewMatchesAndOrder(Coffee dreamCoffee) {
+    private static Coffee viewMatchesAndOrder(Coffee dreamCoffee) {
         Set<Coffee> matches = new HashSet<>(menu.coffeeMatcher(dreamCoffee)); // Helper method in Menu matches the coffees.
         String coffeeMatcherText = buildCoffeeMatchString(matches); // Helper method builds String.
         Coffee[] matchedCoffeesArray = matches.toArray(new Coffee[0]);
@@ -562,7 +543,7 @@ public class MenuSearcher {
      *
      * @return geekOrdering, a Geek record with the user's name, email and phone number.
      */
-    public static Geek getUserInfo() {
+    private static Geek getUserInfo() {
         //**********GET USER NAME**********
         // A regex pattern to check that the input is two words, separated by a space. Word1 Letter1
         // uppercase and following letters lowercase. Word2 must begin with an uppercase, though
@@ -574,7 +555,7 @@ public class MenuSearcher {
             fullName = (String) JOptionPane.showInputDialog(null,
                     "Please enter your first and last names."
                             + "\nThe first letter of each name must be capitalised."
-                            + "\nInput letters only, separating your names by a space."
+                            + "\nInput letters only, separating your first and last names by a space."
                             + "\nEg. MaryJane Parker",
                     APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
             if (fullName == null) {
@@ -603,17 +584,16 @@ public class MenuSearcher {
         // Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln94-98
 
         Pattern phonePattern = Pattern.compile("^0\\d{9}$");
-        String phoneNoInput;
+        String phoneNo;
         do {
-            phoneNoInput = (String) JOptionPane.showInputDialog(null,
-                    "Please enter your phone number in 10-digit format (eg. 04001337000)",
+            phoneNo = (String) JOptionPane.showInputDialog(null,
+                    "Please enter your phone number in 10-digit format (eg. 0400133700)",
                     APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
-            if (phoneNoInput == null) {
+            if (phoneNo == null) {
                 mainMenuGui();
                 return null; //End method because exiting to different GUI method.
             }
-        } while (!matchValidInputString(phonePattern, phoneNoInput));
-        long phoneNo = Long.parseLong(phoneNoInput);
+        } while (!matchValidInputString(phonePattern, phoneNo));
 
         Geek geekOrdering = new Geek(fullName, email, phoneNo);
         return geekOrdering;
@@ -628,7 +608,24 @@ public class MenuSearcher {
      * @return customerOrder, an Order record instance with the relevant attribute values for
      * writing the order to file.
      */
-    public static Order createCustomerOrderRecord(Geek geekOrdering, Coffee selectedCoffeeWithCustomisations) {
+    private static Order createCustomerOrderRecord(Geek geekOrdering, Coffee selectedCoffeeWithCustomisations) {
+        // Assumes that normal flow always returns exactly one milk in milkSet; requirement
+        // to store dreamCoffee as a standard coffee (not a class extension), and the reuse
+        // of the class' Set<Milk> parameter means this could change on refactoring.
+        // Possible future business logic exception not handled, but iterating through an empty set is handled.
+        Milk selectedMilk;
+        try {
+            selectedMilk = selectedCoffeeWithCustomisations.getMilkSet().iterator().next();
+        } catch (Exception e) {
+            System.out.println(
+                    "An error occurred when iterating the milkSet when creating an Order "
+                    +"for 'createCustomerOrderRecord'."
+                    +"\nThis was likely caused by an empty milkSet. A placeholder of 'None' "
+                            +"has been added for the order milk to avoid a NullPointerException on the iterator."
+                    +"\n\nException details: "+e);
+            selectedMilk = Milk.NONE;
+        }
+
         Order customerOrder = new Order(
                 geekOrdering.name(),
                 geekOrdering.phoneNo(),
@@ -636,10 +633,7 @@ public class MenuSearcher {
                 selectedCoffeeWithCustomisations.getMenuItemName(),
                 selectedCoffeeWithCustomisations.getMenuItemId(),
                 selectedCoffeeWithCustomisations.getDrinkType(),
-                // Assumes that normal flow always returns exactly one milk in milkSet; requirement
-                // to store dreamCoffee as a standard coffee (not a class extension), and the reuse
-                // of the class' Set<Milk> parameter means this could change on refactoring.
-                selectedCoffeeWithCustomisations.getMilkSet().iterator().next(),
+                selectedMilk,
                 selectedCoffeeWithCustomisations.getExtrasSet()
         );
         return customerOrder;
@@ -660,7 +654,7 @@ public class MenuSearcher {
      * @param customerOrder the record holding all attribute values relevant to the order.
      * @return orderString contents of the order txt. Can be displayed to user in following GUI.
      */
-    public static String writeCustomerOrderToTxt(Order customerOrder) {
+    private static String writeCustomerOrderToTxt(Order customerOrder) {
         // Check write permissions for directory. "./" must exist because it's the program's root
         // directory, but if the write out path was moved then there should also be a dir.exists()
         // check.
@@ -731,7 +725,7 @@ public class MenuSearcher {
      * @param input the String to be modified.
      * @return the String in the desired (capitalised[0]lowercase[1:]) format.
      */
-    public static String capitaliseFirstLettersOnly(String input) {
+    private static String capitaliseFirstLettersOnly(String input) {
         // Don't operate on null or empty strings.
         if (input == null || input.isEmpty()) return input;
 
@@ -759,7 +753,7 @@ public class MenuSearcher {
      * @param userInput the candidate String entered by the user
      * @return true if String matches regex/false if not
      */
-    public static boolean matchValidInputString(Pattern regexPattern, String userInput) {
+    private static boolean matchValidInputString(Pattern regexPattern, String userInput) {
         Matcher matcher = regexPattern.matcher(userInput);
         return matcher.matches();
     }
@@ -770,17 +764,23 @@ public class MenuSearcher {
      * @param customerOrder record containing all attribute values necessary to record an order.
      * @return a String of the customer's order.
      */
-    public static String orderStringToWriteOut(Order customerOrder) {
+    private static String orderStringToWriteOut(Order customerOrder) {
         StringBuilder sb = new StringBuilder();
         sb.append("Order details:\n");
         sb.append("\tName: ").append(customerOrder.name())
                 .append(" (").append(customerOrder.phoneNo()).append(")\n");
         sb.append("\tEmail: ").append(customerOrder.email());
         sb.append("\tItem: ").append(customerOrder.menuItemName()).append(" (")
-                .append(") - ").append(customerOrder.drinkType()).append("\n");
+                .append(customerOrder.menuItemId()).append(") - ").append(customerOrder.drinkType()).append("\n");
         sb.append("\tMilk: ").append(customerOrder.milk()).append("\n");
-        sb.append("\tExtras: ").append(customerOrder.extrasSet());
+        sb.append("\tExtras: ");
 
+        //Output extrasSet in appropriate String format.
+        //Code adapted from Christopher Perry's response of July 25, 2014 at
+        // https://stackoverflow.com/questions/6622974/convert-string-to-comma-separated-string-in-java
+        String extrasOutputString = customerOrder.extrasSet().isEmpty() ? "None" : String.join(", ", customerOrder.extrasSet());
+
+        sb.append(extrasOutputString);
         return sb.toString();
     }
 
@@ -795,7 +795,7 @@ public class MenuSearcher {
      * @return a String informing the user how to order, whether they've matched with any coffees,
      * and if so, their details.
      */
-    public static String buildCoffeeMatchString(Set<Coffee> matches) {
+    private static String buildCoffeeMatchString(Set<Coffee> matches) {
 //        Set<Coffee> matches = new HashSet<>(menu.coffeeMatcher(dreamCoffee));
         StringBuilder viewMatchesSB = new StringBuilder();
         viewMatchesSB.append("**********Java Bean Coffee Matcher and Ordering System**********\n\n");
@@ -808,7 +808,8 @@ public class MenuSearcher {
                     .append("\nYour coffee matches are shown below.")
                     .append("\nYou can order one of your matches from the drop-down list at the bottom of this window."
                             + "\n\n If you'd like to order a coffee you haven't yet matched with, "
-                            + "\njust exit this window to return to the main menu.");
+                            + "\njust exit this window to return to the main menu.")
+                    .append("\n********************\n\n");
             for (Coffee coffee : matches) {
                 viewMatchesSB.append("\n").append(coffee.coffeeDetailsString())
                         .append("\n").append("\t**********");
@@ -831,7 +832,7 @@ public class MenuSearcher {
      * format "[name] - [menuItemId]"
      */
 
-    public static Coffee[] allCoffeesNameAndId() {
+    private static Coffee[] allCoffeesNameAndId() {
         // toArray() with type specification and right-sized array per
         // https://stackoverflow.com/questions/28392705/difference-between-toarrayt-a-and-toarray?rq=3 and
         // https://stackoverflow.com/questions/174093/toarraynew-myclass0-or-toarraynew-myclassmylist-size?noredirect=1&lq=1
@@ -843,7 +844,8 @@ public class MenuSearcher {
         // Code from https://www.geeksforgeeks.org/java/sort-an-array-in-java-using-comparator/ .
         Arrays.sort(coffeeNamesAndId, Comparator.comparing(coffee -> coffee.getMenuItemName()));
 
-        return coffeeNamesAndId;
+        // Immutable array return idea from https://www.geeksforgeeks.org/java/immutable-array-in-java/
+        return coffeeNamesAndId.clone();
     }
 
 
@@ -858,17 +860,29 @@ public class MenuSearcher {
      * @param value a String of digits with, optionally, a point to indicate a decimal
      * @return a float of the input string, rounded to 2f.
      */
-    public static float roundStringTo2fFloat(String value) {
+    private static float roundStringTo2fFloat(String value) {
         return new BigDecimal(value).setScale(2, BigDecimal.ROUND_HALF_UP).floatValue();
     }
 
-    public static Coffee orderAnyCoffeeParent(){
-        Coffee selectedCoffee = orderAnyCoffeeSelectCoffee();
+    /**
+     * Helper method that groups two helpers and passes an object between them (selectedCoffeeWithAttributes).
+     * Facilitates returning to coffee selection if user changes their mind
+     * about their desired menu coffee at attribute selection stage.
+     * @return Coffee of the user's selected coffee with all parameters set (including modifiable attributes).
+     */
+    private static Coffee orderAnyCoffeeParent(){
+        Coffee selectedCoffee = orderAnyCoffeeSelectedCoffee();
+        if (selectedCoffee == null) return null; // Potentially already sent to mainMenuGui in child method above.
         //Attribute selection only reached if a coffee is selected in the preceding method call
         Coffee selectedCoffeeWithAttributes = orderAnyCoffeeSelectAttributes(selectedCoffee);
         return selectedCoffeeWithAttributes;
     }
-     public static Coffee orderAnyCoffeeSelectCoffee() {
+
+    /**
+     * GUI for selecting any menu coffee to purchase. Calls helper methods to populate options.
+     * @return selected coffee with default values as read from menu.txt (incl complete Sets).
+     */
+     private static Coffee orderAnyCoffeeSelectedCoffee() {
         //TODO ENSURE ANY POSSIBLE CONFLICTING COFFEE OBJECTS TO PASS TO ORDER ARE OVERWRITTEN AS NULL********************************
 //        if (geekOrdering != null) geekOrder = null;
 //        if (selectedCoffeeWithCustomisations != null) selectedCoffeeWithCustomisations = null;
@@ -898,7 +912,7 @@ public class MenuSearcher {
      * and otherwise the param Coffee's attributes.
      * OR returns null if no coffee was finalised.
      */
-    public static Coffee orderAnyCoffeeSelectAttributes(Coffee selectedCoffee){
+    private static Coffee orderAnyCoffeeSelectAttributes(Coffee selectedCoffee){
         String paneInstruction =
                 "Pick the extra(s) you'd like, your coffee's milk option, and then proceed to order.";
 
@@ -961,10 +975,10 @@ public class MenuSearcher {
                     extrasSet.clear();
                 }
                 case 2 -> {
-                    //This doesn't actually do anything, but it would be confusing to UI if they
-                    //had to click to add extras but not to add milk. The milk allocation could
-                    //be moved here from the start of the loop if desired; it just seems more
-                    //fool-proof that if a user clicked a milk, it's automatically added.
+                    //This doesn't actually do anything, but it would be confusing to UI if they had
+                    //to click to add extras but not to add milk. Mlk assignment could be moved here
+                    //from the start of the loop, but it seems more fool-proof that if a user clicks
+                    //a milk it's automatically added.
                     continue;
                 }
                 case 3 -> {
@@ -1010,7 +1024,7 @@ public class MenuSearcher {
      * Get user DrinkType preference via GUI.
      * @return DrinkType Enum value ('hot coffee'/'frappe')
      */
-    public static DrinkType getDreamDrinkType() {
+    private static DrinkType getDreamDrinkType() {
         DrinkType drinkType = (DrinkType) JOptionPane.showInputDialog(null,
                 "For starters, what sort of drink would you like? Hot Coffee or Frappe?",
                 APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, DrinkType.values(), null);
@@ -1034,7 +1048,7 @@ public class MenuSearcher {
      * @return Set <Milk>, the user's milk choice.
      * Set because Coffee parameters expect a Set, even though the Set only contains one value.
      */
-    public static Set<Milk> getDreamMilkSet() {
+    private static Set<Milk> getDreamMilkSet() {
         Milk selectedMilk = (Milk) JOptionPane.showInputDialog(null,
                 "What sort of milk would you like?",
                 APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Milk.values(), null);
@@ -1044,7 +1058,7 @@ public class MenuSearcher {
         }
 
         Set<Milk> milkSet = EnumSet.of(selectedMilk);
-        return milkSet;
+        return Set.copyOf(milkSet);
     }
 
     /**
@@ -1062,7 +1076,7 @@ public class MenuSearcher {
      * @return priceMin Float value, rounded to 2f decimal.
      * Would ideally return float primitive, but wrapper necessary for null early return.
      */
-    public static Float getDreamPriceMin(float priceMin){
+    private static Float getDreamPriceMin(float priceMin){
         String priceMinInput; //Declared outside the loop to avoid recreating the object.
         do {
             priceMinInput = (String) JOptionPane.showInputDialog(null,
@@ -1098,7 +1112,7 @@ public class MenuSearcher {
      * @return Float (2f rounded of the user's maximum price.
      * Would ideally return float primitive, but wrapper necessary for null return on exit to menu.
      */
-    public static Float getDreamPriceMax(float priceMin) {
+    private static Float getDreamPriceMax(float priceMin) {
         float priceMax = -1;
         String priceMaxInput;
         do {
@@ -1135,7 +1149,7 @@ public class MenuSearcher {
      * JPanel version doesn't quite look as nice.
      * @return a Set of Strings of the user's desired extras.
      */
-    public static Set<String> getDreamExtrasSet() {
+    private static Set<String> getDreamExtrasSet() {
         // Alphabetically sorted TreeSet of menu extras--alphabetical for consistent user experience.
         Set<String> extrasSetWithMenuOptions = new TreeSet<>(menu.getAllMenuExtras());
 
@@ -1150,9 +1164,12 @@ public class MenuSearcher {
 
         String extrasDialogMessage =
                 "Which extras would you like?"
-                        + "\n\nWhen you're done, select Finished Adding Extras' to move to your dream coffee's next attribute."
+                        + "\n\nWhen you're done, select Finished Adding Extras' to move to your dream " +
+                        "coffee's next attribute."
                         + "\n\nSelect 'Skip' to skip adding any extras preferences; " +
-                        "this will also clear any extras you chose before changing your mind.";
+                        "this will also clear any extras you chose before changing your mind."
+                        +"\n\nNote, 'skip' means you want to skip filtering based on extras, " +
+                        "and will happily match with any extra that comes your way";
 
         JComboBox<String> extrasDropDown = new JComboBox<>(extrasSelectionArray);
         String[] extrasButtons = {"Add Selected Extra", "Skip Adding Extras", "Finished Adding Extras"};
@@ -1209,14 +1226,14 @@ public class MenuSearcher {
                 }
             }
         }
-        return extrasSet;
+        return Set.copyOf(extrasSet);
     }
 
     /**
      * Gets user input coffee provenance preference via GUI.
      * @return Provenance Enum
      */
-    public static Provenance getDreamProvenance() {
+    private static Provenance getDreamProvenance() {
         Provenance provenance = (Provenance) JOptionPane.showInputDialog(null,
                 "Terroir is important. What's the provenance of the beans you're after?",
                 APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Provenance.values(), null);
@@ -1233,7 +1250,7 @@ public class MenuSearcher {
      * @return Integer numOfShots. Would ideally return int, but primitives not nullable.
      * Null return needed for early exit to main menu.
      */
-    public static Integer getDreamNumOfShots() {
+    private static Integer getDreamNumOfShots() {
         // Largely repeats get price min code and relevant attributions.
         int numOfShots = -1; //Placeholder value used for looping.
 
@@ -1277,7 +1294,7 @@ public class MenuSearcher {
      * Ideally this would return boolean, but then the early exit return call doesn't work properly.
      * @return String value of sugar preference, to convert to boolean in calling method.
      */
-    public static String getDreamSugar() {
+    private static String getDreamSugar() {
         String[] sugarOptions = {"Yes", "No"};
         String sugarString = (String) JOptionPane.showInputDialog(null,
                 "Would you like sugar?",
@@ -1295,7 +1312,7 @@ public class MenuSearcher {
      * write out the customer order and return a string of the order written out.
      * @return String of the customer's final order.
      */
-    public static String createGeekAndOrderParent(){
+    private static String createGeekAndOrderParent(){
         Geek geekOrdering = getUserInfo();
         Order customerOrder = createCustomerOrderRecord(geekOrdering, dreamCoffee);
         String orderOutString = writeCustomerOrderToTxt(customerOrder);
@@ -1304,29 +1321,38 @@ public class MenuSearcher {
 
     /**
      * Show the customer their final order when everything's been successful.
-     * Repeats JOptionPane with scrollbar code first attributed in showCoffeesMenu()
      * @param orderOutString String containing the details of the order written out to text.
      */
-    public static void showCustomerOrder(String orderOutString){
-        // All coffees menu GUI with scrollbar.
-        JTextArea textArea = new JTextArea(orderOutString);
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        scrollPane.setPreferredSize(new Dimension(500, 500));
-        int guiClosedCheck = JOptionPane.showOptionDialog(null, scrollPane, APP_NAME, JOptionPane.DEFAULT_OPTION,
-                JOptionPane.INFORMATION_MESSAGE, icon, null, null);
-
-        // -1 is close menu button, 0 is 'ok' button.
-        if (guiClosedCheck == -1 || guiClosedCheck == 0) {
-            mainMenuGui();
-            dreamCoffee = null; // Reset dream coffee for next construction
-            return; // Superfluous, but good reminder to explicitly end method.
-        }
+    private static void showCustomerOrder(String orderOutString){
+        JOptionPane.showMessageDialog(null, orderOutString, APP_NAME, JOptionPane.PLAIN_MESSAGE, icon);
+        dreamCoffee = null; // Reset dream coffee for next construction
+        mainMenuGui();
     }
 
+    /**
+     * Load app icon. Helper method allows loading it as final in field.
+     * <p>
+     *  Error check ImageIcon load idea from reading the documentation:
+     *  https://docs.oracle.com/en/java/javase/24/docs/api/java.desktop/javax/swing/ImageIcon.html#getImageLoadStatus()
+     *  Discussion on StackOverflow indicates that ImageIcon's failure to load from file will not cause a
+     *  fatal error--it will just produce a blank placeholder box. StackOverflow source:
+     *  https://stackoverflow.com/questions/77634130/i-cant-get-the-imageicon-to-display-properly
+     * <p>
+     * @return ImageIcon to display on GUIs.
+     */
+    private static ImageIcon loadIcon() {
+        ImageIcon iconToPass = new ImageIcon(ICON_PATH);
 
-    public static void testDreamCoffeeCreation(){
+        if (icon.getImageLoadStatus() == MediaTracker.ERRORED
+                || icon.getImageLoadStatus() == MediaTracker.ABORTED) {
+            System.err.println("Error: The icon image failed to load. Check that the image is in the path "
+                    + ICON_PATH + " and that you have permission to access this path.");
+        }
+        return iconToPass;
+    }
+    
+
+    private static void testDreamCoffeeCreation(){
         System.out.println("\n\nCoffee you're about to use to match is:");
         System.out.println(dreamCoffee.hashCode());
         for (Milk m : dreamCoffee.getMilkSet()) System.out.println(m);
