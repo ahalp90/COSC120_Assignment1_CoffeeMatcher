@@ -60,12 +60,11 @@ public class MenuSearcher {
     public static void mainMenuGui() {
         String menuDialogString =
                 "Welcome to the Java Bean Order Genie."
-                        + "\nTake your time to search the menu for the coffee of your dreams."
-                        + "\nUse the drop down menu to start making your order or explore our menu."
+                        + "\n\nUse the drop down menu to start making your order or explore our menu."
                         + "\n\nYou can use our custom coffee matcher to describe your ideal coffee, "
-                        + "and then view your matching coffees before ordering."
-                        + "\nIf haven't described your ideal coffee but still want to order, that's okay."
-                        + "\nGo ahead and click 'View my Coffee Matches and Order' anyway.";
+                        + "and then 'View my Coffee Matches and Order'."
+                        + "\n\nIf haven't described your ideal coffee but still want to order, that's okay."
+                        + "\nJust go ahead and click 'Order Any Item Off the Menu";
 
         String[] mainMenuOptions =
                 {"View the Full Menu", "Describe my Ideal Coffee", "View my Coffee Matches and Order",
@@ -100,10 +99,14 @@ public class MenuSearcher {
                 }
                 case "View my Coffee Matches and Order" -> {
                     if (dreamCoffee != null) viewMatchesAndOrder(dreamCoffee);
+                    String orderOutString = createGeekAndOrderParent();
+                    showCustomerOrder(orderOutString);
 
                 }
                 case "Order Any Item Off the Menu" -> {
                     dreamCoffee = orderAnyCoffeeParent();
+                    String orderOutString = createGeekAndOrderParent();
+                    showCustomerOrder(orderOutString);
                 }
                 // This default should never be reached in normal program flow.
                 default -> {
@@ -113,6 +116,8 @@ public class MenuSearcher {
             }
         }
     }
+
+
 
     /**
      * Load menu items in the provided txt file into a Menu object, which holds them in a Map collection
@@ -413,10 +418,10 @@ public class MenuSearcher {
 
     /**
      * Show a menu of all available coffees.
-     * <p>
+     *
      * Build String of the coffees' details. Calls on helper Coffee.coffeeDetailsString()
      * and then formats as relevant. Display these in coffee menu GUI
-     * <p>
+     *
      * JTextArea and JScrollPane code adapted from GETah's response of Dec 4, 2011 at:
      * https://stackoverflow.com/questions/8375022/joptionpane-and-scroll-function
      * This code creates a JTextArea, assigns its text to the value of the string built using
@@ -1283,6 +1288,43 @@ public class MenuSearcher {
         }
         return sugarString;
     }
+
+    /**
+     * Calls helper methods to get user info to create a new Geek,
+     * create a new Order based on the Geek and the dream coffee, and
+     * write out the customer order and return a string of the order written out.
+     * @return String of the customer's final order.
+     */
+    public static String createGeekAndOrderParent(){
+        Geek geekOrdering = getUserInfo();
+        Order customerOrder = createCustomerOrderRecord(geekOrdering, dreamCoffee);
+        String orderOutString = writeCustomerOrderToTxt(customerOrder);
+        return orderOutString;
+    }
+
+    /**
+     * Show the customer their final order when everything's been successful.
+     * Repeats JOptionPane with scrollbar code first attributed in showCoffeesMenu()
+     * @param orderOutString String containing the details of the order written out to text.
+     */
+    public static void showCustomerOrder(String orderOutString){
+        // All coffees menu GUI with scrollbar.
+        JTextArea textArea = new JTextArea(orderOutString);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        scrollPane.setPreferredSize(new Dimension(500, 500));
+        int guiClosedCheck = JOptionPane.showOptionDialog(null, scrollPane, APP_NAME, JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE, icon, null, null);
+
+        // -1 is close menu button, 0 is 'ok' button.
+        if (guiClosedCheck == -1 || guiClosedCheck == 0) {
+            mainMenuGui();
+            dreamCoffee = null; // Reset dream coffee for next construction
+            return; // Superfluous, but good reminder to explicitly end method.
+        }
+    }
+
 
     public static void testDreamCoffeeCreation(){
         System.out.println("\n\nCoffee you're about to use to match is:");
