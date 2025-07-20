@@ -19,7 +19,7 @@ public class MenuSearcher {
     private final static String MENU_FILE_PATH = "./menu.txt";
     private final static String ICON_PATH = "./java_bean.jpg";
     // TODO: not final. Do I make the class methods instance to allow this (and other changes)?
-    private static final ImageIcon icon = loadIcon();
+    private static final ImageIcon ICON = loadIcon();
     // Store drinks menu as a field so that it's accessible class-wide; use it as a parameter for
     // GUI menus allowing return to the main menu, without needing to repeatedly explicitly pass the
     // object reference.
@@ -71,7 +71,7 @@ public class MenuSearcher {
                     menuDialogString,
                     APP_NAME,
                     JOptionPane.QUESTION_MESSAGE,
-                    icon,
+                    ICON,
                     mainMenuOptions,
                     "Describe my Ideal Coffee");
 
@@ -437,7 +437,7 @@ public class MenuSearcher {
         textArea.setWrapStyleWord(true);
         scrollPane.setPreferredSize(new Dimension(500, 500));
         int guiClosedCheck = JOptionPane.showOptionDialog(null, scrollPane, APP_NAME, JOptionPane.DEFAULT_OPTION,
-                JOptionPane.INFORMATION_MESSAGE, icon, null, null);
+                JOptionPane.INFORMATION_MESSAGE, ICON, null, null);
 
         // -1 is close menu button, 0 is 'ok' button.
         if (guiClosedCheck == -1 || guiClosedCheck == 0) {
@@ -509,7 +509,7 @@ public class MenuSearcher {
 
         Coffee selectedCoffee =
                 (Coffee) JOptionPane.showInputDialog(null, scrollPane, APP_NAME,
-                        JOptionPane.INFORMATION_MESSAGE, icon,
+                        JOptionPane.INFORMATION_MESSAGE, ICON,
                         matchedCoffeesArray, null);
         if (selectedCoffee == null) {
             mainMenuGui();
@@ -557,7 +557,7 @@ public class MenuSearcher {
                             + "\nThe first letter of each name must be capitalised."
                             + "\nInput letters only, separating your first and last names by a space."
                             + "\nEg. MaryJane Parker",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
             if (fullName == null) {
                 mainMenuGui();
                 return null; //End method because exiting to different GUI method.
@@ -572,7 +572,7 @@ public class MenuSearcher {
         do {
             email = (String) JOptionPane.showInputDialog(null,
                     "Please enter your email address (eg. leetgeek@javajunky.com)",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
             if (email == null) {
                 mainMenuGui();
                 return null; //End method because exiting to different GUI method.
@@ -588,7 +588,7 @@ public class MenuSearcher {
         do {
             phoneNo = (String) JOptionPane.showInputDialog(null,
                     "Please enter your phone number in 10-digit format (eg. 0400133700)",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
             if (phoneNo == null) {
                 mainMenuGui();
                 return null; //End method because exiting to different GUI method.
@@ -896,7 +896,7 @@ public class MenuSearcher {
          // check when populating attribute drop-down panels.
          Coffee selectedCoffee =
                  (Coffee) JOptionPane.showInputDialog(null, paneInstruction, APP_NAME, JOptionPane.OK_CANCEL_OPTION,
-                         icon, allCoffeesNameAndId, allCoffeesNameAndId[0]);
+                         ICON, allCoffeesNameAndId, allCoffeesNameAndId[0]);
          if (selectedCoffee==null) {
              mainMenuGui();
              return null; //Early exit from method.
@@ -944,7 +944,7 @@ public class MenuSearcher {
         while (true) {
             int buttonChoice = JOptionPane.showOptionDialog(null,
                     attributesMessageAndDropDown,
-                    APP_NAME, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, icon, attributeSelectorButtons, null);
+                    APP_NAME, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, ICON, attributeSelectorButtons, null);
             extraToAddToSet = (String) extrasDropDown.getSelectedItem();
             selectedMilk = (Milk) milksDropDown.getSelectedItem();
             milkSet = EnumSet.of(selectedMilk);
@@ -965,7 +965,7 @@ public class MenuSearcher {
                                         + String.join(", ", extrasSet)
                                         + "\nPlease select another extra, or click 'Finished Adding Extras'"
                                         + " to move to the next screen.",
-                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, icon);
+                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, ICON);
                     } else {
                         extrasSet.add(extraToAddToSet);
                     }
@@ -986,7 +986,7 @@ public class MenuSearcher {
                         JOptionPane.showMessageDialog(null,
                                 "You've tried to finish this selection without selecting your milk."
                                         +"\nAll coffees need a milk choice, even if it's 'None'",
-                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, icon);
+                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, ICON);
                     } else {
                         selectedCoffeeWithAttributes = new Coffee(
                                 selectedCoffee.getMenuItemId(),
@@ -1027,7 +1027,7 @@ public class MenuSearcher {
     private static DrinkType getDreamDrinkType() {
         DrinkType drinkType = (DrinkType) JOptionPane.showInputDialog(null,
                 "For starters, what sort of drink would you like? Hot Coffee or Frappe?",
-                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, DrinkType.values(), null);
+                APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, DrinkType.values(), null);
         if (drinkType == null) {
             mainMenuGui();
             return null;
@@ -1051,7 +1051,7 @@ public class MenuSearcher {
     private static Set<Milk> getDreamMilkSet() {
         Milk selectedMilk = (Milk) JOptionPane.showInputDialog(null,
                 "What sort of milk would you like?",
-                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Milk.values(), null);
+                APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, Milk.values(), null);
         if (selectedMilk == null) {
             mainMenuGui();
             return null;
@@ -1067,7 +1067,7 @@ public class MenuSearcher {
      * null-checkable input var idea adapted from my solution to COSC120 Tute 4, FindADog.java
      * ln112-129.
      *
-     *  The expanded JOptionPane with icon placement returns an object, not String. Requires
+     *  The expanded JOptionPane with ICON placement returns an object, not String. Requires
      *  explicit casting. Idea from response by selofain, Nov 20, 2019, at
      *  https://stackoverflow.com/questions/33961793/custom-icon-joptionpane-showinputdialog
      *
@@ -1081,7 +1081,7 @@ public class MenuSearcher {
         do {
             priceMinInput = (String) JOptionPane.showInputDialog(null,
                     "What's the minimum you'd like to spend on your drink?",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
             if (priceMinInput == null) {
                 mainMenuGui();
                 return null; //Exiting to different GUI method.
@@ -1118,7 +1118,7 @@ public class MenuSearcher {
         do {
             priceMaxInput = (String) JOptionPane.showInputDialog(null,
                     "What's the maximum you'd like to spend on your drink?",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
             if (priceMaxInput == null) {
                 mainMenuGui();
                 return null; //End loop because exiting to different GUI method.
@@ -1182,7 +1182,7 @@ public class MenuSearcher {
         while (true) {
             int buttonChoice = JOptionPane.showOptionDialog(null,
                     extrasMessageAndDropDown,
-                    APP_NAME, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, icon, extrasButtons, null);
+                    APP_NAME, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, ICON, extrasButtons, null);
             extraToAddToSet = (String) extrasDropDown.getSelectedItem();
 
             // Switch on button choice (showOptionDialog returns int).
@@ -1202,7 +1202,7 @@ public class MenuSearcher {
                                         + String.join(", ", extrasSet)
                                         + "\nPlease select another extra, or click 'Finished Adding Extras'"
                                         + " to move to the next screen.",
-                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, icon);
+                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, ICON);
                     } else {
                         extrasSet.add(extraToAddToSet);
                     }
@@ -1219,7 +1219,7 @@ public class MenuSearcher {
                                 "You've tried to finish this selection with an empty extras set."
                                         +"\nIf that's what you intended, then please click 'Skip'."
                                         +"\nOtherwise, please add extras before moving to the next screen.",
-                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, icon);
+                                APP_NAME, JOptionPane.INFORMATION_MESSAGE, ICON);
                     } else {
                         break extrasLoop;
                     }
@@ -1236,7 +1236,7 @@ public class MenuSearcher {
     private static Provenance getDreamProvenance() {
         Provenance provenance = (Provenance) JOptionPane.showInputDialog(null,
                 "Terroir is important. What's the provenance of the beans you're after?",
-                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, Provenance.values(), null);
+                APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, Provenance.values(), null);
         if (provenance == null) {
             mainMenuGui();
             return null; // Early exit to another method.
@@ -1258,7 +1258,7 @@ public class MenuSearcher {
         do {
             numOfShotsInput = (String) JOptionPane.showInputDialog(null,
                     "How many shots of coffee would you like?",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, null, null);
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
             if (numOfShotsInput == null) {
                 mainMenuGui();
                 return null; //End method because exiting to different GUI method.
@@ -1298,7 +1298,7 @@ public class MenuSearcher {
         String[] sugarOptions = {"Yes", "No"};
         String sugarString = (String) JOptionPane.showInputDialog(null,
                 "Would you like sugar?",
-                APP_NAME, JOptionPane.QUESTION_MESSAGE, icon, sugarOptions, "No");
+                APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, sugarOptions, "No");
         if (sugarString == null) {
             mainMenuGui();
             return null; // End method on call to new method.
@@ -1324,13 +1324,13 @@ public class MenuSearcher {
      * @param orderOutString String containing the details of the order written out to text.
      */
     private static void showCustomerOrder(String orderOutString){
-        JOptionPane.showMessageDialog(null, orderOutString, APP_NAME, JOptionPane.PLAIN_MESSAGE, icon);
+        JOptionPane.showMessageDialog(null, orderOutString, APP_NAME, JOptionPane.PLAIN_MESSAGE, ICON);
         dreamCoffee = null; // Reset dream coffee for next construction
         mainMenuGui();
     }
 
     /**
-     * Load app icon. Helper method allows loading it as final in field.
+     * Load app ICON. Helper method allows loading it as final in class field.
      * <p>
      *  Error check ImageIcon load idea from reading the documentation:
      *  https://docs.oracle.com/en/java/javase/24/docs/api/java.desktop/javax/swing/ImageIcon.html#getImageLoadStatus()
@@ -1341,14 +1341,14 @@ public class MenuSearcher {
      * @return ImageIcon to display on GUIs.
      */
     private static ImageIcon loadIcon() {
-        ImageIcon iconToPass = new ImageIcon(ICON_PATH);
+        ImageIcon guiIcon = new ImageIcon(ICON_PATH);
 
-        if (icon.getImageLoadStatus() == MediaTracker.ERRORED
-                || icon.getImageLoadStatus() == MediaTracker.ABORTED) {
-            System.err.println("Error: The icon image failed to load. Check that the image is in the path "
+        if (guiIcon.getImageLoadStatus() == MediaTracker.ERRORED
+                || guiIcon.getImageLoadStatus() == MediaTracker.ABORTED) {
+            System.err.println("Error: The ICON image failed to load. Check that the image is in the path "
                     + ICON_PATH + " and that you have permission to access this path.");
         }
-        return iconToPass;
+        return guiIcon;
     }
     
 

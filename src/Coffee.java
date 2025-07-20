@@ -43,6 +43,10 @@ public class Coffee {
         this.description = description;
     }
 
+    /**
+     * Describes the coffee in the format required by the Greek Geek for orders.
+     * @return String containing all details required for a coffee order, formatted appropriately.
+     */
     public String coffeeDetailsString() {
         StringBuilder sb = new StringBuilder();
         sb.append(menuItemName).append(" (").append(menuItemId).append(")").append("\n");
@@ -66,6 +70,7 @@ public class Coffee {
 
         return sb.toString();
     }
+
 
     /**
      * Helper method that returns the overlapping extras of two coffees.
