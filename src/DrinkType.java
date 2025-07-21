@@ -1,6 +1,14 @@
+/**
+ * Enum of possible drink types.
+ * Has specific toString return values.
+ */
 public enum DrinkType {
     HOT_COFFEE, FRAPPE;
 
+    /**
+     * User-friendly String representations of DrinkType Enums
+     * @return String
+     */
     public String toString() {
         return switch (this) {
             case HOT_COFFEE -> "Hot Coffee";

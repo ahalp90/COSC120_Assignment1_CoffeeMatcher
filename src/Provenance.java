@@ -1,6 +1,14 @@
+/**
+ * Enum of possible Provenance types.
+ * Has specific toString return values.
+ */
 public enum Provenance {
     INDONESIA_SINGLE_ORIGIN, ETHIOPIAN_SUPERIOR, RWANDA_ORGANIC;
 
+    /**
+     * User-friendly String representations of Provenance Enums
+     * @return String
+     */
     public String toString() {
         return switch (this) {
             case INDONESIA_SINGLE_ORIGIN ->  "Indonesia Single Origin";

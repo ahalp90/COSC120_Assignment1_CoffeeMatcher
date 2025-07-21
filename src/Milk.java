@@ -1,6 +1,14 @@
+/**
+ * Enum of possible Milk types.
+ * Has specific toString return values.
+ */
 public enum Milk {
     FULL_CREAM, SKIM, SOY, ALMOND, OAT, COCONUT, NONE;
 
+    /**
+     * User-friendly String representations of Milk Enums
+     * @return String
+     */
     public String toString() {
         return switch (this) {
             case FULL_CREAM -> "Full-cream";

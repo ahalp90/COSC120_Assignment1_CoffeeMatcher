@@ -2,6 +2,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Creates Coffee object instances and contains methods to return their values--
+ * including a derived String representation of the Coffee to order and a comparison of extras overlaps.
+ */
 public class Coffee {
     private final String menuItemId;
     private final String menuItemName;
@@ -15,11 +19,11 @@ public class Coffee {
     private final Set<String> extrasSet;
     private final String description;
 
-    // Member variables for user dreamCoffee search.
-    // No need for final as a search object's fields should probably be mutable to reuse
-    // (even if in this case it's not because it's a shared class with the pre-defined menu coffees).
-    private float priceMin;
-    private float priceMax;
+    //Variables for dreamCoffee search object. These are set to a sentinel -1 for
+    //non-dreamCoffees.In an ideal world I would have extended the class, but my number of classes
+    //was limited by the assignment requirements.
+    private final float priceMin;
+    private final float priceMax;
 
     Coffee(String menuItemId,
            String menuItemName,
@@ -30,7 +34,9 @@ public class Coffee {
            Provenance provenance,
            Set<Milk> milkSet,
            Set<String> extrasSet,
-           String description) {
+           String description,
+           float priceMin,
+           float priceMax) {
         this.menuItemId = menuItemId;
         this.menuItemName = menuItemName;
         this.price = price;
@@ -41,6 +47,8 @@ public class Coffee {
         this.milkSet = milkSet;
         this.extrasSet = extrasSet;
         this.description = description;
+        this.priceMin = priceMin;
+        this.priceMax = priceMax;
     }
 
     /**
@@ -149,13 +157,4 @@ public class Coffee {
         return priceMax;
     }
 
-    //**********SETTERS**********
-
-    public void setPriceMin(float priceMin) {
-        this.priceMin = priceMin;
-    }
-
-    public void setPriceMax(float priceMax) {
-        this.priceMax = priceMax;
-    }
 }

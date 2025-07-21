@@ -3,8 +3,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Holds all coffees loaded from menu.txt in a field Map.
+ * Map datatype for efficient lookup when populating user matches with direct access to the coffees;
+ * dropdown selectors of coffees to order return a Coffee[] rather than a String[], making this an efficient choice.
+ * <p>Has methods for adding coffee to field Map, matching coffees based on requirements,
+ * returning details of instance extras, and returning copy of instance Menu.
+ */
 public class Menu {
-    //datatype?? maybe this should be an ArrayList depending on interaction manner?
     private final Map<String, Coffee> menu = new HashMap<>();
 
     /**
@@ -15,32 +21,32 @@ public class Menu {
 
     /**
      * Setter: Add Coffee objects to the Menu's data structure (Map).
-     *
-     * @param coffee object holding all the fields relevant to attribute data of coffees.
+     * @param coffee holding all the attribute fields relevant to a Coffee.
      */
     public void addCoffee(Coffee coffee) {
         this.menu.put(coffee.getMenuItemId(), coffee);
     }
 
-    //
 
     /**
-     * Compares the values of the menu coffees against the criteria in a user-defined dream coffee to return matches.
+     * Compares the values of the Menu coffees against the criteria in a user-defined dream coffee to return matches.
      * Set collection for efficient uniqueness enforcement and content equivalence checks.
      *
      * @param dreamCoffee is the user's parametrised ideal coffee template
-     * @return a HashSet of coffees matching the user's dream coffee parameters.
+     * @return Set (HashSet) of coffees matching the user's dream coffee parameters.
      */
     public Set<Coffee> coffeeMatcher(Coffee dreamCoffee) {
         Set<Coffee> matchedCoffeeSet = new HashSet<>();
         // Boolean flag for whether the dreamCoffee has extras preferences; avoid redundant isEmpty() checks.
         boolean dreamCoffeeNoExtrasPreference = dreamCoffee.getExtrasSet().isEmpty();
         for (Coffee i : this.menu.values()) {
+            // Filter based on price range.
             if ((i.getPrice() >= dreamCoffee.getPriceMin() && i.getPrice() <= dreamCoffee.getPriceMax())
                     && (i.getNumOfShots() == dreamCoffee.getNumOfShots())
                     && (i.getSugar() == dreamCoffee.getSugar())
                     && (i.getDrinkType() == dreamCoffee.getDrinkType())
                     && (i.getProvenance() == dreamCoffee.getProvenance())
+                    // dreamCoffee milkSet will only ever contain one Milk in current design.
                     && (i.getMilkSet().containsAll(dreamCoffee.getMilkSet()))
                     // Add the coffee if (1) the user's dreamCoffee has no extras preference, or (2)
                     // there is >=1 overlapping element between the user's extras choices and the
@@ -55,24 +61,6 @@ public class Menu {
         }
         return matchedCoffeeSet;
     }
-//TODO DELETE BELOW OVERLAP CHECKER*****************************************************************************************
-    /**
-     * Helper method that returns whether two coffees' extras sets share at least one overlapping element.
-     * @param menuCoffee is intended to be the coffee of the menu.
-     * @param dreamCoffee is intended to be the app user's dream coffee of preferred attribute values.
-     * @return boolean indicating whether the sets overlap. 'true' if overlap exists. If the user has not
-     * indicated any extras preference, then true is also returned
-     */
-//    public static boolean extrasSetOverlaps(Coffee menuCoffee, Coffee dreamCoffee) {
-//        if (menuCoffee.getExtrasSet().isEmpty()) {
-//            return true;
-//        } else {
-//            // Allocate dream coffee extras strings to a disposable set.
-//            Set<String> overlapSet = new HashSet<>(dreamCoffee.getExtrasSet());
-//            overlapSet.retainAll(menuCoffee.getExtrasSet());
-//            return !overlapSet.isEmpty();
-//        }
-//    }
 
     /**
      * Derive a set of all menu extras found across all menu items.
@@ -83,7 +71,7 @@ public class Menu {
      * Code structure inspired by COSC120 Tute 4 Solution 3_4,AllDogs.java ln32-38.
      * addAll() method idea from: https://www.geeksforgeeks.org/java/merge-two-sets-in-java/
      *
-     * @return a set of Strings identifying all extras on the current menu.txt.
+     * @return defensive copy of a Set of Strings identifying all extras on the current menu.txt.
      */
     public Set<String> getAllMenuExtras() {
         Set<String> allMenuExtras = new HashSet<>();
@@ -95,7 +83,7 @@ public class Menu {
 
     /**
      * Getter to access the Map object (menu) in the Menu object's field.
-     * @return the Map menu.
+     * @return defensive copy of Map menu.
      */
     public Map<String, Coffee> getMenu() {
         return new HashMap<>(this.menu);
