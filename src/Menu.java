@@ -1,3 +1,4 @@
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -81,6 +82,28 @@ public class Menu {
         }
         return Set.copyOf(allMenuExtras);
     }
+
+    /**
+     * Find the minimum and maximum prices in the Menu.
+     * @return float Array of menuPriceMin (index 0) and menuPriceMax (index 1).
+     */
+    public float[] getMenuPriceMinAndMax() {
+        float menuPriceMin = 0;
+        float menuPriceMax = 0;
+        int menuCounter = 0;
+        for (Coffee i : this.menu.values()) {
+            if (menuCounter == 0) {
+                menuPriceMin = i.getPrice();
+                menuPriceMax = i.getPrice();
+            } else {
+                if (i.getPrice() < menuPriceMin) menuPriceMin = i.getPrice();
+                if (i.getPrice() > menuPriceMax) menuPriceMax = i.getPrice();
+            }
+            menuCounter++;
+        }
+        return new float[]{menuPriceMin, menuPriceMax};
+    }
+
 
     /**
      * Getter to access the Map object (menu) in the Menu object's field.

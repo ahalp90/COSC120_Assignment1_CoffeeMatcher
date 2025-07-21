@@ -59,7 +59,7 @@ public class MenuSearcher {
         // values, or (2) the Menu menu loaded empty set; error-checking through loadMenuItems()
         // suggests this would be because the provided menu.txt contained no coffees below the
         // header line.
-        if (MenuSearcher.menu == null || MenuSearcher.menu.getMenu().isEmpty()) {
+        if (menu == null || menu.getMenu().isEmpty()) {
             JOptionPane.showMessageDialog(null,
                     "The menu could not be loaded. The program will exit when you close this dialogue box.",
                     APP_NAME, JOptionPane.ERROR_MESSAGE);
@@ -78,6 +78,10 @@ public class MenuSearcher {
     private static void mainMenuGui() {
         // Initialise dreamCoffee object to hold attributes of desired coffee.
         Coffee dreamCoffee = null;
+        // Local var maintains menu price min and max for duration of instance; referenced by
+        // dreamCoffe min/max price input GUIs. Declare here to avoid repeated recreation. Clone to
+        // protect origin Array.
+        float [] menuPriceMinAndMax = menu.getMenuPriceMinAndMax().clone();
         String menuDialogString =
                 "Welcome to the Java Bean Order Genie."
                         + "\n\nUse the drop down menu to start making your order or explore our menu."
@@ -110,7 +114,7 @@ public class MenuSearcher {
                     System.exit(0); //break loop unnecessary, since we're ending.
                 }
                 case "View the Full Menu" -> showCoffeesMenu();
-                case "Describe my Ideal Coffee" -> dreamCoffee = getUserDreamCoffee();
+                case "Describe my Ideal Coffee" -> dreamCoffee = getUserDreamCoffee(menuPriceMinAndMax);
                 case "View my Coffee Matches and Order" -> {
                     if (dreamCoffee != null) {
                         //update dreamCoffee to take the attributes of the returned coffeeToOrder
@@ -493,9 +497,16 @@ public class MenuSearcher {
      * Assignment and exception handling code adapted from COSC120 Tute 4 solutions 3_4,
      * FindADog.java getUserCriteria() method, ln167-243.
      *
+     * @param menuPriceMinAndMax float Array containing the lowest and highest price values on the menu;
+     *                           used to populate relevant helper method GUI prompts.
      * @return dreamCoffee, a Coffee object representing the user's desired coffee attributes.
      */
-    private static Coffee getUserDreamCoffee() {
+    private static Coffee getUserDreamCoffee(float [] menuPriceMinAndMax) {
+        // IntelliJ issues a null check warning here, but null values within menuPriceMinAndMax
+        // aren't possible because the menu would never have populated without prices.
+
+        float menuPriceMin = menuPriceMinAndMax[0];
+        float menuPriceMax = menuPriceMinAndMax[1];
         //Check for null (or -1 sentinel values for getDreamPriceMin/Max) returns between each child
         //called in case of child's early exit to mainMenuGui.
 
@@ -505,10 +516,10 @@ public class MenuSearcher {
         Set<Milk> milkSet = getDreamMilkSet();
         if (milkSet == null) return null;
 
-        float priceMin = getDreamPriceMin();
+        float priceMin = getDreamPriceMin(menuPriceMin);
         if (priceMin == -1) return null;
 
-        float priceMax = getDreamPriceMax(priceMin); //priceMin as param for logical comparison.
+        float priceMax = getDreamPriceMax(priceMin, menuPriceMax); //priceMin as param for logical comparison.
         if (priceMax == -1) return null;
 
         Set<String> extrasSet = getDreamExtrasSet();
@@ -1145,16 +1156,19 @@ public class MenuSearcher {
      * https://stackoverflow.com/questions/70656577/how-can-i-return-null-in-java-when-the-method-is-defined-as-int-data-type
      * Initially used a convoluted Integer wrapper with unboxing, but sentinel value is more elegant.
      *
+     * @param menuPriceMin float of the lowest price on the menu, displayed in GUI prompt.
      * @return priceMin float value, rounded to 2f decimal.
      * returns -1 if early exit.
      */
-    private static float getDreamPriceMin(){
-        float priceMin = -1; // Initialise priceMin to <0 for looping and min value.
+    private static float getDreamPriceMin(float menuPriceMin){
+        // Initialise priceMin to <0 for looping and min value. Really this could be set to
+        // menuPriceMin, but then the test cases with a price min of 0 wouldn't work.
+        float priceMin = -1;
         String priceMinInput; //Declared outside the loop to avoid recreating the object.
         do {
             priceMinInput = (String) JOptionPane.showInputDialog(null,
-                    "What's the minimum you'd like to spend on your drink?",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
+                    "What's the minimum you'd like to spend on your drink? Our drinks start from $"
+                            +menuPriceMin, APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
             if (priceMinInput == null) {
                 mainMenuGui();
                 return priceMin = -1; //Exiting to different GUI method; explicit but redundant reminder of return value.
@@ -1171,7 +1185,7 @@ public class MenuSearcher {
                         "Sorry, input must be in whole digit or decimal format, eg. 3.5\n"
                                 + "Please try again.", APP_NAME, JOptionPane.ERROR_MESSAGE);
             }
-        } while (priceMin < 0);         // Allow 0 min price.
+        } while (priceMin < 0);         // Allow 0 min price for test cases to work.
         return priceMin;
     }
 
@@ -1183,16 +1197,17 @@ public class MenuSearcher {
      * <p>Eg. If priceMinInput= 2 and priceMaxInput= 1.999, they're both considered to = 2.00.
      * @param priceMin float passed from calling method's receipt of getDreamPriceMin return
      *                to allow Max>Min comparison.
+     * @param menuPriceMax float of the maximum price on the menu, displayed in GUI prompt.
      * @return float (2f rounded of the user's maximum price.
      * returns -1 if early exit.
      */
-    private static float getDreamPriceMax(float priceMin) {
+    private static float getDreamPriceMax(float priceMin, float menuPriceMax) {
         float priceMax = -1;
         String priceMaxInput;
         do {
             priceMaxInput = (String) JOptionPane.showInputDialog(null,
-                    "What's the maximum you'd like to spend on your drink?",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
+                    "What's the maximum you'd like to spend on your drink? Everything on the menu is under $"
+                            +menuPriceMax, APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
             if (priceMaxInput == null) {
                 mainMenuGui();
                 return priceMin = -1; //Exiting to different GUI method; explicit but redundant reminder of return value.
@@ -1242,7 +1257,7 @@ public class MenuSearcher {
                         "coffee's next attribute."
                         + "\n\nSelect 'Skip' to skip adding any extras preferences; " +
                         "this will also clear any extras you chose before changing your mind."
-                        +"\n\nNote: 'Skip' means you want to Skip filtering based on extras, " +
+                        +"\n\nNote: 'Skip' means you want to skip filtering based on extras, " +
                         "and will happily match with any extra that comes your way";
 
         JComboBox<String> extrasDropDown = new JComboBox<>(extrasSelectionArray);
