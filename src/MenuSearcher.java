@@ -594,71 +594,71 @@ public class MenuSearcher {
     }
 
     /**
-     * Obtain the user's info via GUI.
+     * Obtain the user's info via GUI. Calls child helper method.
      * <p>
      * Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln82-160. Regex patterns found therein.
      * However,regex Pattern compilations moved to this calling method to avoid recompilation in helpers at each loop.
      *
      * @return geekOrdering, a Geek record with the user's name, email and phone number.
+     * Returns null values in case of early exit from helper method to mainMenuGui.
      */
     private static Geek getUserInfo() {
+        //null checks after each call to promptForValidUserInfoString in case of exit to mainMenuGui.
         //**********GET USER NAME**********
         // A regex pattern to check that the input is two words, separated by a space. Word1 Letter1
         // uppercase and following letters lowercase. Word2 must begin with an uppercase, though
         // subsequent letters may be of either case.
         Pattern fullNamePattern = Pattern.compile("^[A-Z][a-zA-Z]+\\s[A-Z][a-zA-Z]+$");
-
-        String fullName;
-        do {
-            fullName = (String) JOptionPane.showInputDialog(null,
-                    "Please enter your first and last names."
-                            + "\nThe first letter of each name must be capitalised."
-                            + "\nInput letters only, separating your first and last names by a space."
-                            + "\nEg. MaryJane Parker",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
-            if (fullName == null) {
-                mainMenuGui();
-                return null; //End method because exiting to different GUI method.
-            }
-        } while (!matchValidInputString(fullNamePattern, fullName));
+        String fullNamePromptMessage = "Please enter your first and last names."
+                + "\nThe first letter of each name must be capitalised."
+                + "\nInput letters only, separating your first and last names by a space."
+                + "\nEg. MaryJane Parker";
+        String fullName = promptForValidUserInfoString (fullNamePromptMessage, fullNamePattern);
+        if (fullName == null) return null;
 
         //**********GET USER EMAIL**********
         // A regex pattern to check that the email complies with RFC 5322.
         Pattern emailPattern = Pattern.compile("^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$");
-
-        String email;
-        do {
-            email = (String) JOptionPane.showInputDialog(null,
-                    "Please enter your email address (eg. leetgeek@javajunky.com)",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
-            if (email == null) {
-                mainMenuGui();
-                return null; //End method because exiting to different GUI method.
-            }
-        } while (!matchValidInputString(emailPattern, email));
+        String emailPromptMessage = "Please enter your email address (eg. leetgeek@javajunky.com)";
+        String email = promptForValidUserInfoString(emailPromptMessage, emailPattern);
+        if  (email == null) return null;
 
         //**********GET USER PHONE NUMBER**********
         // A regex pattern to check that phone numbers start with a 0 and are followed by 9 digits.
         // Adapted from COSC120 Tute 4 solution 3_4, FindADog.java, ln94-98
 
         Pattern phonePattern = Pattern.compile("^0\\d{9}$");
-        String phoneNo;
-        do {
-            phoneNo = (String) JOptionPane.showInputDialog(null,
-                    "Please enter your phone number in 10-digit format (eg. 0400133700)",
-                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
-            if (phoneNo == null) {
-                mainMenuGui();
-                return null; //End method because exiting to different GUI method.
-            }
-        } while (!matchValidInputString(phonePattern, phoneNo));
+        String phonePromptMessage = "Please enter your phone number in 10-digit format (eg. 0400133700)";
+        String phoneNo = promptForValidUserInfoString(phonePromptMessage, phonePattern);
+        if  (phoneNo == null) return null;
+
 
         Geek geekOrdering = new Geek(fullName, email, phoneNo); //explicit declaration for easy testing.
         return geekOrdering;
     }
 
     /**
-     * Populate an Order record with all attribute values relevant to customer order
+     * Helper method to get user info when populating Geek Record.
+     * @param promptMessage String prompt particular to the type of user info requested
+     * @param validationPattern Pattern relevant to matching the type of user info requested
+     * @return String of the relevant type of user info after input and validation.
+     */
+    private static String promptForValidUserInfoString (String promptMessage, Pattern validationPattern){
+        String userInput;
+        do {
+            userInput = (String) JOptionPane.showInputDialog(null,
+                    promptMessage,
+                    APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
+            if (userInput == null) {
+                mainMenuGui();
+                return null; //End method because exiting to different GUI method.
+            }
+        } while (!matchValidInputString(validationPattern, userInput));
+        return userInput;
+    }
+
+    /**
+     * Populate an Order Record with all attribute values relevant to customer order
      *
      * @param geekOrdering                     Geek record containing the customer's personal details.
      * @param selectedCoffeeWithCustomisations Coffee instance containing the attributes
@@ -714,13 +714,13 @@ public class MenuSearcher {
      * https://www.geeksforgeeks.org/java/files-iswritable-method-in-java-with-examples/
      * Files.writeString() method idea from Roberto's answer of Feb 24 2014:
      * https://stackoverflow.com/questions/7366266/best-way-to-write-string-to-file-using-java-nio
-     *
+     * Note, currently only allows max 10000 orders per phone number.
      * @param customerOrder the record holding all attribute values relevant to the order.
      * @return orderString contents of the order txt. Can be displayed to user in following GUI.
      */
     private static String writeCustomerOrderToTxt(Order customerOrder) {
         // Check write permissions for directory. "./" must exist because it's the program's root
-        // directory, but if the write out path was moved then there should also be a dir.exists()
+        // directory, but if the write out path were moved then there should also be a dir.exists()
         // check.
         Path writeOutDir = Paths.get("./");
         if (!Files.isWritable(writeOutDir)) {
@@ -781,7 +781,7 @@ public class MenuSearcher {
     }
 
     /**
-     * Capitalise the first letter of each word in a string, and make other letters lowercase.
+     * Capitalise the first letter of each word in a string, and make following letters lowercase.
      * <p>
      * Adapted with minor modification from this tutorial:
      * https://www.geeksforgeeks.org/java/java-program-to-capitalize-the-first-letter-of-each-word-in-a-string/
@@ -851,8 +851,8 @@ public class MenuSearcher {
 
     /**
      * Helper method. Builds a String of coffee matches based on a set of matched coffees.
-     * Matched coffee set constructed by coffeeMatcher, a Menu helper method called by
-     * MenuSearcher viewMatchesAndOrder.
+     * Matched coffee set constructed by coffeeMatcher, a Menu method called by
+     * MenuSearcher's viewMatchesAndOrder.
      * Called by viewMatchesAndOrder.
      * Informs the user of all matches OR the situation of no match.
      *
@@ -938,7 +938,8 @@ public class MenuSearcher {
     }
 
     /**
-     * Helper method that groups two helpers and passes an object between them (selectedCoffeeWithAttributes).
+     * Helper method that groups two coffee order helpers and passes an
+     * object between them (selectedCoffeeWithAttributes).
      * Facilitates returning to coffee selection if user changes their mind
      * about their desired menu coffee at attribute selection stage.
      * @return Coffee of the user's selected coffee with all parameters set (including modifiable attributes).
@@ -957,8 +958,6 @@ public class MenuSearcher {
      * @return selected coffee with default values as read from menu.txt (incl complete Sets).
      */
      private static Coffee orderAnyCoffeeSelectedCoffee() {
-        //TODO ENSURE ANY POSSIBLE CONFLICTING COFFEE OBJECTS TO PASS TO ORDER ARE OVERWRITTEN AS NULL********************************
-//        if (geekOrdering != null) geekOrder = null;
 
          // Coffee selector pane
          String paneInstruction =
@@ -1097,7 +1096,7 @@ public class MenuSearcher {
 
     /**
      * Get user DrinkType preference via GUI.
-     * @return DrinkType Enum value ('hot coffee'/'frappe')
+     * @return DrinkType Enum value ('HOT_COFFEE'/'FRAPPE')
      */
     private static DrinkType getDreamDrinkType() {
         DrinkType drinkType = (DrinkType) JOptionPane.showInputDialog(null,
@@ -1147,7 +1146,7 @@ public class MenuSearcher {
      * @return priceMin float value, rounded to 2f decimal.
      * returns -1 if early exit.
      */
-    private static Float getDreamPriceMin(){
+    private static float getDreamPriceMin(){
         float priceMin = -1; // Initialise priceMin to <0 for looping and min value.
         String priceMinInput; //Declared outside the loop to avoid recreating the object.
         do {
@@ -1299,7 +1298,7 @@ public class MenuSearcher {
                 }
             }
         }
-        return Set.copyOf(extrasSet);
+        return Set.copyOf(extrasSet); // Returns defensive copy of mutable.
     }
 
     /**
@@ -1393,7 +1392,6 @@ public class MenuSearcher {
         Order customerOrder = createCustomerOrderRecord(geekOrdering, dreamCoffee);
         String orderOutString = writeCustomerOrderToTxt(customerOrder);
         return orderOutString;
-
     }
 
     /**
@@ -1447,6 +1445,5 @@ public class MenuSearcher {
         System.out.println(dreamCoffee.getSugar() ? "yes" : "no");
         System.out.println("min" + dreamCoffee.getPriceMin() + " max" + dreamCoffee.getPriceMax());
         System.out.println(dreamCoffee.getProvenance());
-
     }
 }

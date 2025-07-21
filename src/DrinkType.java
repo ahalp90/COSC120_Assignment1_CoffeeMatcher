@@ -7,7 +7,7 @@ public enum DrinkType {
 
     /**
      * User-friendly String representations of DrinkType Enums
-     * @return String
+     * @return String of Enum value in user-friendly format.
      */
     public String toString() {
         return switch (this) {

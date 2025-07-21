@@ -7,7 +7,7 @@ public enum Milk {
 
     /**
      * User-friendly String representations of Milk Enums
-     * @return String
+     * @return String of Enum value in user-friendly format.
      */
     public String toString() {
         return switch (this) {

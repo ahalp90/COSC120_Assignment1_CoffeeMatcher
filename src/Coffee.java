@@ -25,6 +25,21 @@ public class Coffee {
     private final float priceMin;
     private final float priceMax;
 
+    /**
+     * Constructor to initialise Coffee with values passed as parameters.
+     * @param menuItemId String of menuItemID from menu.txt
+     * @param menuItemName String of menuItemName from menu.txt
+     * @param price float of price from menu.txt
+     * @param numOfShots int of number of shots from menu.txt
+     * @param sugar boolean of sugar yes/no from menu.txt
+     * @param drinkType Enum of drink type from menu.txt
+     * @param provenance Enum of provenance from menu.txt
+     * @param milkSet Set of Milk Enums from menu.txt
+     * @param extrasSet Set of Strings of extras from menu.txt
+     * @param description String description from menu.txt
+     * @param priceMin float minimum desired user price to set search range, from MenuSearcher.java
+     * @param priceMax float maximum desired user price to set search range, from MenuSearcher.java
+     */
     Coffee(String menuItemId,
            String menuItemName,
            float price,
@@ -108,53 +123,94 @@ public class Coffee {
     }
 
     //**********GETTERS**********
-    // Filter out unneeded ones after.
+
+    //NB. Set.copyOf() for defensive copies of sets presumes that current program logic
+    // remains intact and no Set in a successful run of the program will ever contain nulls.
+    /**
+     * Gets menuItemId from private field.
+     * @return String of menuItemId.
+     */
     public String getMenuItemId() {
         return menuItemId;
     }
 
+    /**
+     * Gets menuItemName from private field.
+     * @return String of menuItemName.
+     */
     public String getMenuItemName() {
         return menuItemName;
     }
 
+    /**
+     * Gets price from private field.
+     * @return float of price.
+     */
     public float getPrice() {
         return price;
     }
-
+    /**
+     * Gets numOfShots from private field.
+     * @return int of numOfShots.
+     */
     public int getNumOfShots() {
         return numOfShots;
     }
-
+    /**
+     * Gets sugar yes/no from private field.
+     * @return boolean of sugar.
+     */
     public boolean getSugar() {
         return sugar;
     }
-
+    /**
+     * Gets DrinkType from private field.
+     * @return DrinkType Enum value (with class toString) of DrinkType.
+     */
     public DrinkType getDrinkType() {
         return drinkType;
     }
-
+    /**
+     * Gets Provenance from private field.
+     * @return Provenance Enum value (with class toString) of Provenance.
+     */
     public Provenance getProvenance() {
         return provenance;
     }
-
+    /**
+     * Gets milkSet from private field.
+     * @return defensive copy of Set of Milk Enum values (with Milk class toString) of milkSet.
+     */
     public Set<Milk> getMilkSet() {
-        return new HashSet<>(this.milkSet);
+        return Set.copyOf(milkSet);
     }
-
+    /**
+     * Gets extrasSet from private field.
+     * @return defensive copy of Set of extras String values.
+     */
     public Set<String> getExtrasSet() {
-        return new HashSet<String>(this.extrasSet);
+        return Set.copyOf(extrasSet);
     }
-
+    /**
+     * Gets description from private field.
+     * @return String of description.
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Gets priceMin from private field.
+     * @return float of priceMin.
+     */
     public float getPriceMin() {
         return priceMin;
     }
-
+    /**
+     * Gets priceMax from private field.
+     * @return float of priceMax.
+     */
     public float getPriceMax() {
         return priceMax;
     }
-
 }

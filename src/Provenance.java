@@ -7,7 +7,7 @@ public enum Provenance {
 
     /**
      * User-friendly String representations of Provenance Enums
-     * @return String
+     * @return String of Enum value in user-friendly format.
      */
     public String toString() {
         return switch (this) {
