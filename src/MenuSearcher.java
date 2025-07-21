@@ -335,10 +335,8 @@ public class MenuSearcher {
             // Remove all "[" at the start of the string, or "]" at the end of the string.
             //
             // Matcher idea taken from consistent use in COSC120 tutorial examples (eg Tute 4
-            // Answers 3_4, FindADog.Java lines 156-159), my discovery that Pattern has no
-            // replaceAll() method
-            // (https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html), and the
-            // discussion here:
+            // Answers 3_4, FindADog.Java lines 156-159) + IntelliJ prompted me to use .replaceAll()
+            // on a Matcher String (unlike the tutorial example), which led me to the discussion here:
             // https://stackoverflow.com/questions/1466959/string-replaceall-vs-matcher-replaceall-performance-differences
             String milkStringsWithSqBrackets = elements[7];
             Matcher milkMatcher = patternSqBracketsAroundString.matcher(milkStringsWithSqBrackets);
@@ -922,7 +920,7 @@ public class MenuSearcher {
 
 
     /**
-     * Round String to 2 decimal places. Rounds up at halves. BigDecimal offers best precision for monetary calculations.
+     * Round String to 2 decimal places. Rounds up at halves.
      * User might input a figure with many decimal places, but standard commercial transactions are in 2f.
      * <p>
      * Idea inspired from discussion at
@@ -1021,7 +1019,7 @@ public class MenuSearcher {
 
             //IntelliJ warns that this might be null, but it's impossible according to current
             //program logic. There will always be at least one milk option, even if it's 'NONE' that
-            //populates the JComboBox. and a JComboBox will always by default select the first item
+            //populates the JComboBox. And a JComboBox will always by default select the first item
             //on the list: https://docs.oracle.com/javase/8/docs/api/javax/swing/JComboBox.html
             milkSet = EnumSet.of(selectedMilk);
 
