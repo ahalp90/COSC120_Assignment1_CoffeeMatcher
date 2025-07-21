@@ -108,11 +108,14 @@ public class MenuSearcher {
                     mainMenuOptions,
                     "Describe my Ideal Coffee");
 
+            // I had this null check as a switch case because I wrote the program in Java 24, but
+            // I've just tried it in Java 17 and it prevents compilation in Java 17.
+            if (menuChoice == null) {
+                System.out.println("Program exited successfully from Main Menu.");
+                System.exit(0); //break loop unnecessary, since we're ending.
+            }
+
             switch (menuChoice) {
-                case null -> {
-                    System.out.println("Program exited successfully from Main Menu.");
-                    System.exit(0); //break loop unnecessary, since we're ending.
-                }
                 case "View the Full Menu" -> showCoffeesMenu();
                 case "Describe my Ideal Coffee" -> dreamCoffee = getUserDreamCoffee(menuPriceMinAndMax);
                 case "View my Coffee Matches and Order" -> {
@@ -509,6 +512,8 @@ public class MenuSearcher {
         //sensible. Used purely for String representation rather than real calculation purposes.
         //From code at
         //https://stackoverflow.com/questions/2538787/how-to-print-a-float-with-2-decimal-places-in-java
+        //I switched from Java24 to Java17 to test compilation and IntelliJ says it can't resolve
+        //the format below, but it seems to compile and work anyway.
         String menuPriceMin = String.format("%.2f",menuPriceMinAndMax[0]);
         String menuPriceMax = String.format("%.2f",menuPriceMinAndMax[1]);
         //Check for null (or -1 sentinel values for getDreamPriceMin/Max) returns between each child
@@ -873,7 +878,7 @@ public class MenuSearcher {
      * and if so, their details.
      */
     private static String buildCoffeeMatchString(Set<Coffee> matches) {
-//        Set<Coffee> matches = new HashSet<>(menu.coffeeMatcher(dreamCoffee));
+        //No defensive copy made of matches Set since it's local to the calling method and only exists for this helper.
         StringBuilder viewMatchesSB = new StringBuilder();
         viewMatchesSB.append("**********Java Bean Coffee Matcher and Ordering System**********\n\n");
         if (matches.isEmpty()) {
@@ -883,12 +888,6 @@ public class MenuSearcher {
         } else {
             viewMatchesSB.append("Congratulations, you've matched!")
                     .append("\nYour coffee matches are shown below.")
-                    // I was confused by this instruction in the assignment. I presume it was
-                    // addressed when I did the initial filter based on priceMin/Max, but I'm
-                    // including this here just in case I misunderstood the instruction that: 'Users
-                    // must also be able to filter results based on a price-range. You MUST indicate
-                    // to the user what the range is (cheapest-expensive) based on items on my menu,
-                    // and pre-set the variables accordingly.'
                     .append("\nReminder: The range of coffees presented has been filtered by price-range; ")
                     .append("you might have other ideal matches outside this range.")
                     .append("\n\nYou can order one of your matches from the drop-down list at the bottom of this window."
