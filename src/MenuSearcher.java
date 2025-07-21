@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * @author Ariel Halperin. Made for University of New England course COSC120, Assignment 1.
  * main class for Java Bean Menu Searcher. Contains methods for representing the program in GUI format,
  * deriving a Menu object from the provided menu.txt, defining the user's coffee choices,
  * and writing-out a customer order.
@@ -26,8 +27,6 @@ import java.util.regex.Pattern;
  * -menu.txt menu file in './menu.txt'
  * -java_bean.jpg icon file in './java_bean.jpg'
  * <p>Tested on Java OpenJDK 24.0.1
- * Author: Ariel Halperin (2025).
- * Made for University of New England course COSC120, Assignment 1.
  */
 public class MenuSearcher {
     // appName, menuFilePath and iconPath are constants.
@@ -967,7 +966,7 @@ public class MenuSearcher {
          // Default choice first coffee on the list; changing this condition would oblige a state
          // check when populating attribute drop-down panels.
          Coffee selectedCoffee =
-                 (Coffee) JOptionPane.showInputDialog(null, paneInstruction, APP_NAME, JOptionPane.OK_CANCEL_OPTION,
+                 (Coffee) JOptionPane.showInputDialog(null, paneInstruction, APP_NAME, JOptionPane.PLAIN_MESSAGE,
                          ICON, allCoffeesNameAndId, allCoffeesNameAndId[0]);
          if (selectedCoffee==null) {
              mainMenuGui();
@@ -1019,6 +1018,11 @@ public class MenuSearcher {
                     APP_NAME, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, ICON, attributeSelectorButtons, null);
             extraToAddToSet = (String) extrasDropDown.getSelectedItem();
             selectedMilk = (Milk) milksDropDown.getSelectedItem();
+
+            //IntelliJ warns that this might be null, but it's impossible according to current
+            //program logic. There will always be at least one milk option, even if it's 'NONE' that
+            //populates the JComboBox. and a JComboBox will always by default select the first item
+            //on the list: https://docs.oracle.com/javase/8/docs/api/javax/swing/JComboBox.html
             milkSet = EnumSet.of(selectedMilk);
 
             // Switch on button choice (showOptionDialog returns int).

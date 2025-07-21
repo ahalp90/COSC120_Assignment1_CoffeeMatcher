@@ -3,6 +3,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * @author Ariel Halperin. Made for University of New England course COSC120, Assignment 1.
  * Creates Coffee object instances and contains methods to return their values--
  * including a derived String representation of the Coffee to order and a comparison of extras overlaps.
  */

@@ -1,5 +1,6 @@
 
 /**
+ * @author Ariel Halperin. Made for University of New England course COSC120, Assignment 1.
  * Record containing the details of the user (Geek) ordering a coffee.
  * @param name a String of the user's name in First+Last name format.
  * @param email a String of the user's email address.

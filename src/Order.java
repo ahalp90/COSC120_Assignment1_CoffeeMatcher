@@ -1,6 +1,7 @@
 import java.util.Set;
 
 /**
+ * @author Ariel Halperin. Made for University of New England course COSC120, Assignment 1.
  * Record of the customer's order, containing all details relevant to order file write-out.
  * @param name String of customer's name
  * @param phoneNo String of customer's phone number in 10 digit format. String due to leading '0' requirement.

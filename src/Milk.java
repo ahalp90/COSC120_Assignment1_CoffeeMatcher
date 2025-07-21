@@ -1,4 +1,5 @@
 /**
+ * @author Ariel Halperin. Made for University of New England course COSC120, Assignment 1.
  * Enum of possible Milk types.
  * Has specific toString return values.
  */

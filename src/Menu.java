@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * @author Ariel Halperin. Made for University of New England course COSC120, Assignment 1.
  * Holds all coffees loaded from menu.txt in a field Map.
  * Map datatype for efficient lookup when populating user matches with direct access to the coffees;
  * dropdown selectors of coffees to order return a Coffee[] rather than a String[], making this an efficient choice.
