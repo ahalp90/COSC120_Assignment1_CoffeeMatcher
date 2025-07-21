@@ -505,8 +505,12 @@ public class MenuSearcher {
         // IntelliJ issues a null check warning here, but null values within menuPriceMinAndMax
         // aren't possible because the menu would never have populated without prices.
 
-        float menuPriceMin = menuPriceMinAndMax[0];
-        float menuPriceMax = menuPriceMinAndMax[1];
+        //Reformat as 2f String. No BigDecimal call as menu.txt price values are expected to be
+        //sensible. Used purely for String representation rather than real calculation purposes.
+        //From code at
+        //https://stackoverflow.com/questions/2538787/how-to-print-a-float-with-2-decimal-places-in-java
+        String menuPriceMin = String.format("%.2f",menuPriceMinAndMax[0]);
+        String menuPriceMax = String.format("%.2f",menuPriceMinAndMax[1]);
         //Check for null (or -1 sentinel values for getDreamPriceMin/Max) returns between each child
         //called in case of child's early exit to mainMenuGui.
 
@@ -1160,7 +1164,7 @@ public class MenuSearcher {
      * @return priceMin float value, rounded to 2f decimal.
      * returns -1 if early exit.
      */
-    private static float getDreamPriceMin(float menuPriceMin){
+    private static float getDreamPriceMin(String menuPriceMin){
         // Initialise priceMin to <0 for looping and min value. Really this could be set to
         // menuPriceMin, but then the test cases with a price min of 0 wouldn't work.
         float priceMin = -1;
@@ -1168,7 +1172,7 @@ public class MenuSearcher {
         do {
             priceMinInput = (String) JOptionPane.showInputDialog(null,
                     "What's the minimum you'd like to spend on your drink? Our drinks start from $"
-                            +menuPriceMin, APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
+                            +menuPriceMin, APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, menuPriceMin);
             if (priceMinInput == null) {
                 mainMenuGui();
                 return priceMin = -1; //Exiting to different GUI method; explicit but redundant reminder of return value.
@@ -1201,13 +1205,13 @@ public class MenuSearcher {
      * @return float (2f rounded of the user's maximum price.
      * returns -1 if early exit.
      */
-    private static float getDreamPriceMax(float priceMin, float menuPriceMax) {
+    private static float getDreamPriceMax(float priceMin, String menuPriceMax) {
         float priceMax = -1;
         String priceMaxInput;
         do {
             priceMaxInput = (String) JOptionPane.showInputDialog(null,
                     "What's the maximum you'd like to spend on your drink? Everything on the menu is under $"
-                            +menuPriceMax, APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, null);
+                            +menuPriceMax, APP_NAME, JOptionPane.QUESTION_MESSAGE, ICON, null, menuPriceMax);
             if (priceMaxInput == null) {
                 mainMenuGui();
                 return priceMin = -1; //Exiting to different GUI method; explicit but redundant reminder of return value.
